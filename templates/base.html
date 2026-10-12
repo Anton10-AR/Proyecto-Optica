@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Ópticas Casimiro{% endblock %}</title>
+</head>
+<body>
+  <header>
+    <strong>Ópticas Casimiro</strong>
+    {% if user.is_authenticated %}
+      <span>{{ user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}" style="display:inline">
+        {% csrf_token %}<button type="submit">Cerrar sesión</button>
+      </form>
+    {% endif %}
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>
