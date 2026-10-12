@@ -30,7 +30,7 @@ class BaseTest(TestCase):
         cls.sucursal = Sucursal.objects.create(
             nombre='Centro', direccion='Calle 1', latitud=Decimal('-19.0475'), longitud=Decimal('-65.2593'),
         )
-        cls.admin = crear_usuario('admin', roles.ADMINISTRADOR, cls.sucursal, ci='1111111')
+        cls.admin = crear_usuario('administrador', roles.ADMINISTRADOR, cls.sucursal, ci='1111111')
         cls.cajero = crear_usuario('cajero', roles.CAJERO_VENDEDOR, cls.sucursal, ci='2222222')
         cls.empleado = crear_usuario('empleado', roles.EMPLEADO, cls.sucursal, ci='3333333')
 
@@ -234,7 +234,7 @@ class PantallasTests(TestCase):
             reverse('venta_lista'), reverse('venta_detalle', args=[venta.pk]), reverse('venta_nota', args=[venta.pk]),
             reverse('asistencia_marcar'), reverse('asistencia_mi_historial'), reverse('asistencia_todas'),
         ]
-        self.client.force_login(Usuario.objects.get(username='admin'))
+        self.client.force_login(Usuario.objects.get(username='administrador'))
         for url in urls:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)

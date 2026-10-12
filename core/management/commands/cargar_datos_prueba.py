@@ -22,7 +22,7 @@ SUCURSALES = [
 
 # usuario, nombres, apellidos, CI, teléfono, rol, índice de sucursal, activo
 USUARIOS = [
-    ('admin', 'Sofía', 'Torrico Lima', '1000001', '70000001', roles.ADMINISTRADOR, 0, True),
+    ('administrador', 'Sofía', 'Torrico Lima', '1000001', '70000001', roles.ADMINISTRADOR, 0, True),
     ('gerente', 'Daniel', 'Ortiz Paredes', '1000002', '70000002', roles.GERENTE, 0, True),
     ('cajero1', 'Juan', 'Pérez Mamani', '1000003', '70000003', roles.CAJERO_VENDEDOR, 0, True),
     ('cajero2', 'Lucía', 'Quispe Vargas', '1000004', '70000004', roles.CAJERO_VENDEDOR, 1, True),

@@ -16,7 +16,7 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 
 | Usuario | Rol | Sucursal | Qué demostrar |
 |---|---|---|---|
-| `admin` | Administrador | Centro | CRUD de usuarios, sucursales, registro de actividad y todos los módulos |
+| `administrador` | Administrador | Centro | CRUD de usuarios, sucursales, registro de actividad y todos los módulos |
 | `gerente` | Gerente | Centro | Ve ventas, cajas y asistencia de todos; no puede crear ni editar usuarios |
 | `cajero1` | Cajero/Vendedor | Centro | Abre caja, registra ventas y pagos, cierra con arqueo. Tiene una caja cerrada de ejemplo |
 | `cajero2` | Cajero/Vendedor | Norte | No ve las ventas ni las cajas de `cajero1` |
@@ -29,7 +29,7 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 
 1. Inicie sesión como `empleado1` y compruebe que el menú solo muestra *Asistencia*. Si intenta entrar a `/administracion/usuarios/`, obtiene *Acceso denegado*.
 2. Inicie sesión como `cajero1`: abra la caja, registre una venta con un anticipo, imprima la nota de venta (lleva el vendedor en el encabezado), cobre el saldo y cierre la caja con el arqueo.
-3. Inicie sesión como `admin`:
+3. Inicie sesión como `administrador`:
    - cree un usuario;
    - búsquelo por nombre o CI;
    - cámbiele el rol;
