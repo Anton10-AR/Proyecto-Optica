@@ -1,10 +1,20 @@
 {% extends 'base.html' %}
 {% block title %}Iniciar sesión · Ópticas Casimiro{% endblock %}
 {% block content %}
-  <h1>Iniciar sesión</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Ingresar</button>
-  </form>
+<div class="row justify-content-center pt-5">
+  <div class="col-sm-9 col-md-6 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 text-center mb-1">Ópticas Casimiro</h1>
+        <p class="text-center text-muted mb-4">Ingrese con su usuario o correo</p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% include '_campos.html' %}
+          <input type="hidden" name="next" value="{{ next }}">
+          <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

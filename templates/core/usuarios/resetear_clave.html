@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Resetear contraseña · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-5">
+    <h1 class="h4 mb-1">Resetear contraseña</h1>
+    <p class="text-muted">{{ usuario_obj.get_full_name|default:usuario_obj.username }} ({{ usuario_obj.username }}) deberá cambiarla en su próximo inicio de sesión.</p>
+    <form method="post" novalidate class="card card-body shadow-sm">
+      {% csrf_token %}
+      {% include '_campos.html' %}
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Resetear</button>
+        <a class="btn btn-outline-secondary" href="{% url 'usuario_lista' %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

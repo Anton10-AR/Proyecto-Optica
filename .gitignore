@@ -5,3 +5,4 @@ __pycache__/
 staticfiles/
 media/
 .claude/settings.local.json
+node_modules/

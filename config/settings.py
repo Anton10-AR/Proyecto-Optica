@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'core',
     'inventario',
     'ventas',
+    'caja',
     'asistencia',
 ]
 
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'core.middleware.CambioClaveObligatorioMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -95,6 +97,9 @@ DATABASES = {
 
 AUTH_USER_MODEL = 'core.Usuario'
 
+# Se puede iniciar sesión con el nombre de usuario o con el correo.
+AUTHENTICATION_BACKENDS = ['core.backends.UsuarioOCorreoBackend']
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'login'
@@ -102,6 +107,13 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
+
+# Argon2 primero: las contraseñas nuevas se guardan con Argon2 y las antiguas
+# (PBKDF2) se re-hashean automáticamente en el siguiente inicio de sesión.
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -117,6 +129,15 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+# Sesiones persistentes en base de datos (django_session) que expiran por
+# inactividad: cada petición renueva la expiración.
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = int(os.getenv('SESSION_INACTIVIDAD_SEGUNDOS', '1800'))
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
 
 
 # Internationalization

@@ -1,0 +1,8 @@
+{
+  "name": "vision-opticas-casimiro",
+  "private": true,
+  "description": "Genera el documento de visión en Word: node generar_vision.js <salida.docx>",
+  "dependencies": {
+    "docx": "^9.10.0"
+  }
+}

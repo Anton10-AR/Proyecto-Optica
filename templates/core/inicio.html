@@ -1,4 +1,34 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h1>Bienvenido, {{ user.get_full_name|default:user.get_username }}</h1>
+<h1 class="h3 mb-1">Bienvenido, {{ user.get_full_name|default:user.username }}</h1>
+<p class="text-muted mb-4">
+  {% if user.rol %}Rol: {{ user.rol }}{% elif user.is_superuser %}Superusuario{% else %}Sin rol asignado{% endif %}
+  {% if user.sucursal %} · Sucursal: {{ user.sucursal }}{% endif %}
+</p>
+<div class="row g-3">
+  {% if perms.ventas.registrar_venta %}
+  <div class="col-sm-6 col-lg-3"><a class="card card-body h-100 text-decoration-none shadow-sm" href="{% url 'venta_crear' %}">
+    <h2 class="h6">Nueva venta</h2><p class="small text-muted mb-0">Registrar una venta y su pago.</p></a></div>
+  {% endif %}
+  {% if perms.caja.operar_caja %}
+  <div class="col-sm-6 col-lg-3"><a class="card card-body h-100 text-decoration-none shadow-sm" href="{% url 'mi_caja' %}">
+    <h2 class="h6">Mi caja</h2><p class="small text-muted mb-0">Apertura, movimientos y arqueo.</p></a></div>
+  {% endif %}
+  {% if perms.asistencia.marcar_asistencia %}
+  <div class="col-sm-6 col-lg-3"><a class="card card-body h-100 text-decoration-none shadow-sm" href="{% url 'asistencia_marcar' %}">
+    <h2 class="h6">Marcar asistencia</h2><p class="small text-muted mb-0">Registrar entrada o salida.</p></a></div>
+  {% endif %}
+  {% if perms.core.view_usuario %}
+  <div class="col-sm-6 col-lg-3"><a class="card card-body h-100 text-decoration-none shadow-sm" href="{% url 'usuario_lista' %}">
+    <h2 class="h6">Usuarios</h2><p class="small text-muted mb-0">Cuentas, roles y estados.</p></a></div>
+  {% endif %}
+  {% if perms.asistencia.ver_todas_marcaciones %}
+  <div class="col-sm-6 col-lg-3"><a class="card card-body h-100 text-decoration-none shadow-sm" href="{% url 'asistencia_todas' %}">
+    <h2 class="h6">Asistencia del personal</h2><p class="small text-muted mb-0">Marcaciones de todos.</p></a></div>
+  {% endif %}
+  {% if perms.ventas.ver_todas_ventas %}
+  <div class="col-sm-6 col-lg-3"><a class="card card-body h-100 text-decoration-none shadow-sm" href="{% url 'venta_lista' %}">
+    <h2 class="h6">Ventas</h2><p class="small text-muted mb-0">Ventas de todos los vendedores.</p></a></div>
+  {% endif %}
+</div>
 {% endblock %}
