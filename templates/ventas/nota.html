@@ -1,41 +1,61 @@
-<!doctype html>
+{% load static %}<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nota de venta {{ venta.numero }} · Ópticas Casimiro</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>body { max-width: 720px; margin: 2rem auto; } @media print { .no-print { display: none; } body { margin: 0; } }</style>
+  <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
+  <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/casimiro.css' %}" rel="stylesheet">
+  <style>
+    body { background: #fff; }
+    .nota { max-width: 760px; margin: 2rem auto; }
+    .nota-cabecera { border-bottom: 3px solid var(--oc-petroleo); }
+    @media print { .no-print { display: none !important; } .nota { margin: 0; max-width: none; } }
+  </style>
 </head>
-<body class="p-3">
-  <div class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-3">
-    <div>
-      <h1 class="h4 mb-0">Ópticas Casimiro</h1>
-      <div class="text-muted small">{{ venta.sucursal }} · {{ venta.sucursal.direccion }}</div>
+<body>
+<div class="nota p-3">
+  <div class="nota-cabecera d-flex justify-content-between align-items-start pb-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{% static 'img/logo.svg' %}" alt="" height="56">
+      <div>
+        <div class="h4 mb-0">Ópticas Casimiro</div>
+        <div class="small text-muted">{{ venta.sucursal }} · {{ venta.sucursal.direccion }}</div>
+      </div>
     </div>
     <div class="text-end">
-      <div class="fw-semibold">NOTA DE VENTA</div>
-      <div>N.º {{ venta.numero }}</div>
+      <div class="fw-semibold text-primary">NOTA DE VENTA</div>
+      <div class="fs-5">N.º {{ venta.numero }}</div>
       <div class="small text-muted">Documento no fiscal</div>
     </div>
   </div>
-  <table class="table table-sm table-borderless mb-3">
-    <tr><th class="w-25">Fecha</th><td>{{ venta.fecha|date:"d/m/Y H:i" }}</td></tr>
-    <tr><th>Vendedor</th><td>{{ venta.vendedor }} (ID {{ venta.vendedor_id }})</td></tr>
-    <tr><th>Cliente</th><td>{{ venta.cliente_nombre }}{% if venta.cliente_ci %} · CI/NIT {{ venta.cliente_ci }}{% endif %}</td></tr>
-  </table>
-  <table class="table table-bordered">
+  <div class="row mb-4 small">
+    <div class="col-sm-6">
+      <div class="text-muted text-uppercase fw-semibold" style="font-size:.72rem">Cliente</div>
+      <div class="fw-medium">{{ venta.cliente_nombre }}</div>
+      {% if venta.cliente_ci %}<div>CI/NIT {{ venta.cliente_ci }}</div>{% endif %}
+    </div>
+    <div class="col-sm-6 text-sm-end">
+      <div class="text-muted text-uppercase fw-semibold" style="font-size:.72rem">Fecha y vendedor</div>
+      <div>{{ venta.fecha|date:"d/m/Y H:i" }}</div>
+      <div>{{ venta.vendedor }} (ID {{ venta.vendedor_id }})</div>
+    </div>
+  </div>
+  <table class="table">
     <thead><tr><th>Descripción</th><th class="text-end">Importe</th></tr></thead>
     <tbody><tr><td>{{ venta.descripcion }}</td><td class="text-end">Bs {{ venta.total }}</td></tr></tbody>
     <tfoot>
       <tr><th class="text-end">Total</th><th class="text-end">Bs {{ venta.total }}</th></tr>
-      {% for p in pagos %}<tr><td class="text-end small">Pago {{ p.fecha|date:"d/m/Y" }} ({{ p.get_forma_pago_display }})</td><td class="text-end small">Bs {{ p.monto }}</td></tr>{% endfor %}
+      {% for p in pagos %}<tr><td class="text-end small text-muted">Pago {{ p.fecha|date:"d/m/Y" }} ({{ p.get_forma_pago_display }})</td><td class="text-end small">− Bs {{ p.monto }}</td></tr>{% endfor %}
       <tr><th class="text-end">Saldo</th><th class="text-end">Bs {{ venta.saldo }}</th></tr>
     </tfoot>
   </table>
-  <div class="no-print d-flex gap-2">
+  <p class="text-center small text-muted mt-5">Gracias por su preferencia · Cuidando cada detalle de tu visión</p>
+  <div class="no-print d-flex gap-2 justify-content-center mt-4">
     <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
     <a class="btn btn-outline-secondary" href="{% url 'venta_detalle' venta.pk %}">Volver</a>
   </div>
+</div>
 </body>
 </html>

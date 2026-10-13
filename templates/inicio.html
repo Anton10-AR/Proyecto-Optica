@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% block title %}Inicio · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1>Hola, {{ user.first_name|default:user.username }}</h1>
+    <p>{{ hoy|date:"l j \d\e F \d\e Y"|capfirst }}{% if user.sucursal %} · {{ user.sucursal }}{% endif %}</p>
+  </div>
+</div>
+
+{# ---------- Indicadores ---------- #}
+<div class="row g-3 mb-4">
+  {% if proximo_tipo %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'asistencia_marcar' %}">
+      <div class="oc-indicador">
+        <span class="oc-icono"><i class="bi bi-geo-alt"></i></span>
+        <div>
+          <div class="oc-etiqueta">Mi asistencia de hoy</div>
+          {% with ultima=marcaciones_hoy|last %}
+          <div class="oc-valor">{% if ultima %}{{ ultima.get_tipo_display }} {{ ultima.fecha_hora|time:"H:i" }}{% else %}Sin marcar{% endif %}</div>
+          {% endwith %}
+          <div class="small text-muted">Siguiente: {% if proximo_tipo == 'ENTRADA' %}entrada{% else %}salida{% endif %}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  {% if perms.caja.operar_caja %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'mi_caja' %}">
+      <div class="oc-indicador">
+        <span class="oc-icono"><i class="bi bi-safe"></i></span>
+        <div>
+          <div class="oc-etiqueta">Mi caja</div>
+          {% if mi_caja %}
+          <div class="oc-valor">Bs {{ mi_caja.efectivo_esperado }}</div>
+          <div class="small"><span class="oc-estado oc-estado-ok">Abierta</span></div>
+          {% else %}
+          <div class="oc-valor">Cerrada</div>
+          <div class="small text-muted">Ábrala para vender</div>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  {% if mis_ventas_hoy %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'venta_lista' %}">
+      <div class="oc-indicador">
+        <span class="oc-icono"><i class="bi bi-receipt"></i></span>
+        <div>
+          <div class="oc-etiqueta">Mis ventas de hoy</div>
+          <div class="oc-valor">Bs {{ mis_ventas_hoy.total|default:"0,00" }}</div>
+          <div class="small text-muted">{{ mis_ventas_hoy.cantidad }} venta{{ mis_ventas_hoy.cantidad|pluralize }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  {% if ventas_hoy %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'venta_lista' %}">
+      <div class="oc-indicador">
+        <span class="oc-icono"><i class="bi bi-graph-up-arrow"></i></span>
+        <div>
+          <div class="oc-etiqueta">Ventas de hoy (todas)</div>
+          <div class="oc-valor">Bs {{ ventas_hoy.total|default:"0,00" }}</div>
+          <div class="small text-muted">{{ ventas_hoy.cantidad }} venta{{ ventas_hoy.cantidad|pluralize }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  {% if personal %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'asistencia_todas' %}">
+      <div class="oc-indicador">
+        <span class="oc-icono"><i class="bi bi-people"></i></span>
+        <div>
+          <div class="oc-etiqueta">Personal presente hoy</div>
+          <div class="oc-valor">{{ personal.presentes }} / {{ personal.total }}</div>
+          <div class="small text-muted">marcaron entrada</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  {% if usuarios %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'usuario_lista' %}">
+      <div class="oc-indicador">
+        <span class="oc-icono"><i class="bi bi-person-badge"></i></span>
+        <div>
+          <div class="oc-etiqueta">Usuarios</div>
+          <div class="oc-valor">{{ usuarios.activos }} activos</div>
+          <div class="small text-muted">{{ usuarios.inactivos }} desactivado{{ usuarios.inactivos|pluralize }}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  {% if perms.core.view_registroactividad %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'actividad_lista' %}?accion=INICIO_FALLIDO">
+      <div class="oc-indicador">
+        <span class="oc-icono" {% if fallidos_hoy %}style="background: var(--bs-danger-bg-subtle); color: var(--oc-peligro)"{% endif %}><i class="bi bi-shield-exclamation"></i></span>
+        <div>
+          <div class="oc-etiqueta">Intentos fallidos hoy</div>
+          <div class="oc-valor">{{ fallidos_hoy }}</div>
+          <div class="small text-muted">inicios de sesión rechazados</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  {# ---------- Accesos rápidos ---------- #}
+  <div class="{% if actividad %}col-lg-7{% else %}col-12{% endif %}">
+    <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">Accesos rápidos</h2>
+    <div class="row g-3">
+      {% if perms.ventas.registrar_venta %}
+      <div class="col-sm-6"><a class="card card-body h-100 oc-acceso" href="{% url 'venta_crear' %}">
+        <i class="bi bi-plus-circle oc-icono mb-2"></i><div class="fw-semibold">Nueva venta</div><div class="small text-muted">Registrar una venta y su pago.</div></a></div>
+      {% endif %}
+      {% if perms.caja.operar_caja %}
+      <div class="col-sm-6"><a class="card card-body h-100 oc-acceso" href="{% url 'mi_caja' %}">
+        <i class="bi bi-cash-coin oc-icono mb-2"></i><div class="fw-semibold">Mi caja</div><div class="small text-muted">Apertura, movimientos y arqueo.</div></a></div>
+      {% endif %}
+      {% if perms.asistencia.marcar_asistencia %}
+      <div class="col-sm-6"><a class="card card-body h-100 oc-acceso" href="{% url 'asistencia_marcar' %}">
+        <i class="bi bi-geo-alt oc-icono mb-2"></i><div class="fw-semibold">Marcar asistencia</div><div class="small text-muted">Registrar entrada o salida.</div></a></div>
+      <div class="col-sm-6"><a class="card card-body h-100 oc-acceso" href="{% url 'asistencia_mi_historial' %}">
+        <i class="bi bi-calendar3 oc-icono mb-2"></i><div class="fw-semibold">Mi historial</div><div class="small text-muted">Mis entradas y salidas.</div></a></div>
+      {% endif %}
+      {% if perms.core.add_usuario %}
+      <div class="col-sm-6"><a class="card card-body h-100 oc-acceso" href="{% url 'usuario_crear' %}">
+        <i class="bi bi-person-plus oc-icono mb-2"></i><div class="fw-semibold">Nuevo usuario</div><div class="small text-muted">Crear una cuenta y asignar su rol.</div></a></div>
+      {% endif %}
+      {% if perms.asistencia.ver_todas_marcaciones %}
+      <div class="col-sm-6"><a class="card card-body h-100 oc-acceso" href="{% url 'asistencia_todas' %}">
+        <i class="bi bi-people oc-icono mb-2"></i><div class="fw-semibold">Asistencia del personal</div><div class="small text-muted">Marcaciones de todo el personal.</div></a></div>
+      {% endif %}
+      {% if perms.caja.ver_todas_cajas %}
+      <div class="col-sm-6"><a class="card card-body h-100 oc-acceso" href="{% url 'caja_todas' %}">
+        <i class="bi bi-collection oc-icono mb-2"></i><div class="fw-semibold">Cajas</div><div class="small text-muted">Aperturas y arqueos de todos.</div></a></div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ---------- Actividad reciente ---------- #}
+  {% if actividad %}
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-shield-check me-1 text-info"></i>Actividad reciente</span>
+        <a class="small fw-normal" href="{% url 'actividad_lista' %}">Ver todo</a>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for r in actividad %}
+        <li class="list-group-item d-flex justify-content-between gap-2">
+          <div>
+            <div class="small fw-medium {% if r.accion == 'INICIO_FALLIDO' %}text-danger{% endif %}">{{ r.get_accion_display }}</div>
+            <div class="small text-muted">{% if r.usuario %}{{ r.usuario.username }}{% elif r.credencial %}«{{ r.credencial }}»{% endif %}{% if r.usuario_afectado %} → {{ r.usuario_afectado.username }}{% endif %}</div>
+          </div>
+          <div class="small text-muted text-nowrap">{{ r.fecha|date:"d/m H:i" }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

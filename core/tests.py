@@ -241,3 +241,34 @@ class PantallasTests(TestCase):
         self.client.force_login(Usuario.objects.get(username='cajero1'))
         self.assertEqual(self.client.get(reverse('mi_caja')).status_code, 200)
         self.assertEqual(self.client.get(reverse('venta_detalle', args=[venta.pk])).status_code, 200)
+
+
+class PrepararDemoTests(TestCase):
+    def test_reinicia_la_demo_y_conserva_superusuarios(self):
+        from django.core.management.base import CommandError
+        from django.test import override_settings
+
+        from caja.models import SesionCaja
+        from ventas.models import Venta
+
+        call_command('cargar_datos_prueba', stdout=StringIO())
+        root = Usuario.objects.create_superuser('root', 'root@test.bo', CLAVE)
+        ensayo = crear_usuario('ensayo', roles.EMPLEADO, Sucursal.objects.first(), ci='7777777')
+        RegistroActividad.objects.create(accion='CREACION_USUARIO', usuario=root, usuario_afectado=ensayo)
+        cajero = Usuario.objects.get(username='cajero1')
+        cajero.set_password('cambiada')
+        cajero.save()
+
+        with self.assertRaises(CommandError):  # fuera de DEBUG se niega
+            call_command('preparar_demo', '--si', stdout=StringIO())
+        with override_settings(DEBUG=True):
+            call_command('preparar_demo', '--si', stdout=StringIO())
+
+        self.assertFalse(Usuario.objects.filter(username='ensayo').exists())
+        self.assertTrue(Usuario.objects.filter(username='root').exists())
+        self.assertFalse(RegistroActividad.objects.exists())
+        cajero.refresh_from_db()
+        self.assertTrue(cajero.check_password('Casimiro2026!'))
+        # Queda el escenario de ejemplo: una caja cerrada con una venta con saldo.
+        self.assertEqual(SesionCaja.objects.count(), 1)
+        self.assertEqual(Venta.objects.get().saldo, Decimal('300'))

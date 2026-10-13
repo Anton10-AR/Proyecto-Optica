@@ -2,50 +2,64 @@
 {% block title %}Marcar asistencia · Ópticas Casimiro{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-7 col-lg-5 text-center">
-    <h1 class="h4 mb-1">Marcar asistencia</h1>
-    <p class="text-muted">{{ user.get_full_name|default:user.username }} · Sucursal: {{ user.sucursal|default:"sin asignar" }}</p>
-    {% if not user.sucursal %}
-    <div class="alert alert-warning">No tiene una sucursal asignada. Pida al administrador que se la asigne.</div>
-    {% else %}
-    <form method="post" id="form-marcar">
-      {% csrf_token %}
-      <input type="hidden" name="latitud" id="latitud">
-      <input type="hidden" name="longitud" id="longitud">
-      <button type="button" id="btn-marcar" class="btn btn-lg w-100 py-3 {% if proximo == 'ENTRADA' %}btn-success{% else %}btn-warning{% endif %}">
-        Marcar {% if proximo == 'ENTRADA' %}entrada{% else %}salida{% endif %}
-      </button>
-    </form>
-    <p id="estado-ubicacion" class="small text-muted mt-2">Se usará la ubicación de su dispositivo para verificar que está en la sucursal.</p>
-    {% endif %}
-
-    <h2 class="h6 mt-4 text-start">Hoy</h2>
-    <ul class="list-group text-start">
-      {% for m in hoy %}
-      <li class="list-group-item d-flex justify-content-between">
-        <span>{{ m.get_tipo_display }}</span><span>{{ m.fecha_hora|time:"H:i" }} · {{ m.distancia_metros }} m</span>
-      </li>
-      {% empty %}
-      <li class="list-group-item text-muted">Aún no tiene marcaciones hoy.</li>
-      {% endfor %}
-    </ul>
-    <a class="d-inline-block mt-3" href="{% url 'asistencia_mi_historial' %}">Ver mi historial</a>
+  <div class="col-md-8 col-lg-5">
+    <div class="card">
+      <div class="card-body p-4 text-center">
+        <div class="small text-muted mb-1">{% now "l j \d\e F" %}</div>
+        <div class="oc-reloj" id="reloj">{% now "H:i:s" %}</div>
+        <div class="text-muted mb-4"><i class="bi bi-geo-alt me-1"></i>{{ user.sucursal|default:"Sin sucursal asignada" }}</div>
+        {% if not user.sucursal %}
+        <div class="alert alert-warning text-start d-flex gap-2"><i class="bi bi-exclamation-triangle-fill mt-1"></i><div>No tiene una sucursal asignada. Pida al administrador que se la asigne.</div></div>
+        {% else %}
+        <form method="post" id="form-marcar">
+          {% csrf_token %}
+          <input type="hidden" name="latitud" id="latitud">
+          <input type="hidden" name="longitud" id="longitud">
+          <button type="button" id="btn-marcar" class="btn oc-marcar {% if proximo == 'ENTRADA' %}btn-success{% else %}btn-acento{% endif %}">
+            <i class="bi {% if proximo == 'ENTRADA' %}bi-box-arrow-in-right{% else %}bi-box-arrow-right{% endif %}"></i>
+            Marcar {% if proximo == 'ENTRADA' %}entrada{% else %}salida{% endif %}
+          </button>
+        </form>
+        <p id="estado-ubicacion" class="small text-muted mt-3 mb-0">Se usará la ubicación de su dispositivo para verificar que está en la sucursal.</p>
+        {% endif %}
+      </div>
+      <div class="card-footer bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-semibold small text-uppercase text-muted">Hoy</span>
+          <a class="small" href="{% url 'asistencia_mi_historial' %}">Ver mi historial</a>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for m in hoy %}
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span>{% if m.tipo == 'ENTRADA' %}<span class="oc-estado oc-estado-ok">Entrada</span>{% else %}<span class="oc-estado oc-estado-aviso">Salida</span>{% endif %}</span>
+            <span class="text-muted small">{{ m.fecha_hora|time:"H:i" }} · a {{ m.distancia_metros }} m</span>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted small px-0">Aún no tiene marcaciones hoy.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
 {% block extra_js %}
 <script>
+  const reloj = document.getElementById('reloj');
+  setInterval(() => { reloj.textContent = new Date().toLocaleTimeString('es-BO', { hour12: false }); }, 1000);
+
   const boton = document.getElementById('btn-marcar');
   const estado = document.getElementById('estado-ubicacion');
   if (boton) {
     boton.addEventListener('click', () => {
       if (!navigator.geolocation) {
         estado.textContent = 'Su navegador no permite obtener la ubicación.';
-        estado.className = 'small text-danger mt-2';
+        estado.className = 'small text-danger mt-3 mb-0';
         return;
       }
       boton.disabled = true;
-      estado.textContent = 'Obteniendo ubicación…';
+      estado.className = 'small text-muted mt-3 mb-0';
+      estado.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Obteniendo ubicación…';
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           document.getElementById('latitud').value = pos.coords.latitude.toFixed(6);
@@ -54,7 +68,7 @@
         },
         (error) => {
           boton.disabled = false;
-          estado.className = 'small text-danger mt-2';
+          estado.className = 'small text-danger mt-3 mb-0';
           estado.textContent = error.code === error.PERMISSION_DENIED
             ? 'Debe permitir el acceso a la ubicación para marcar.'
             : 'No se pudo obtener la ubicación. Intente de nuevo.';

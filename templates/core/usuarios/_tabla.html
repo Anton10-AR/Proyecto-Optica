@@ -1,45 +1,56 @@
-<div class="table-responsive card shadow-sm">
-<table class="table table-hover align-middle mb-0">
-  <thead class="table-light">
-    <tr><th>Nombre</th><th>CI</th><th>Usuario / correo</th><th>Rol</th><th>Sucursal</th><th>Estado</th><th class="text-end">Acciones</th></tr>
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+  <thead>
+    <tr><th>Usuario</th><th>CI</th><th>Rol</th><th>Sucursal</th><th>Estado</th><th class="text-end">Acciones</th></tr>
   </thead>
   <tbody>
   {% for u in pagina %}
     <tr>
-      <td>{{ u.get_full_name|default:"—" }}</td>
+      <td>
+        <div class="d-flex align-items-center gap-2">
+          <span class="oc-avatar flex-shrink-0" {% if not u.is_active %}style="background:#B8C4C8"{% endif %}>{{ u.first_name|first|default:u.username|first|upper }}{{ u.last_name|first|upper }}</span>
+          <div>
+            <div class="fw-medium">{{ u.get_full_name|default:u.username }}</div>
+            <div class="small text-muted">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</div>
+          </div>
+        </div>
+      </td>
       <td>{{ u.ci|default:"—" }}</td>
-      <td>{{ u.username }}<div class="small text-muted">{{ u.email }}</div></td>
-      <td>{% if u.rol %}{{ u.rol }}{% elif u.is_superuser %}<em>Superusuario</em>{% else %}—{% endif %}</td>
+      <td>{% if u.rol %}{{ u.rol }}{% elif u.is_superuser %}<em class="text-muted">Superusuario</em>{% else %}—{% endif %}</td>
       <td>{{ u.sucursal|default:"—" }}</td>
-      <td>{% if u.is_active %}<span class="badge text-bg-success">Activo</span>{% else %}<span class="badge text-bg-secondary">Inactivo</span>{% endif %}</td>
+      <td>{% if u.is_active %}<span class="oc-estado oc-estado-ok">Activo</span>{% else %}<span class="oc-estado oc-estado-inactivo">Inactivo</span>{% endif %}</td>
       <td class="text-end text-nowrap">
         {% if perms.core.change_usuario and not u.is_superuser or perms.core.change_usuario and user.is_superuser %}
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'usuario_editar' u.pk %}">Editar</a>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'usuario_resetear_clave' u.pk %}">Resetear clave</a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'usuario_editar' u.pk %}" title="Editar datos y rol"><i class="bi bi-pencil"></i><span class="d-none d-xl-inline ms-1">Editar</span></a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'usuario_resetear_clave' u.pk %}" title="Resetear contraseña"><i class="bi bi-key"></i><span class="d-none d-xl-inline ms-1">Clave</span></a>
         {% if u != user %}
         <form method="post" action="{% url 'usuario_cambiar_estado' u.pk %}" class="d-inline"
               onsubmit="return confirm('{% if u.is_active %}¿Desactivar la cuenta de {{ u.username|escapejs }}? No podrá iniciar sesión, pero su historial se conserva.{% else %}¿Reactivar la cuenta de {{ u.username|escapejs }}?{% endif %}');">
           {% csrf_token %}
-          {% if u.is_active %}<button class="btn btn-sm btn-outline-danger">Desactivar</button>
-          {% else %}<button class="btn btn-sm btn-outline-success">Reactivar</button>{% endif %}
+          {% if u.is_active %}<button class="btn btn-sm btn-outline-danger" title="Desactivar cuenta (baja lógica)"><i class="bi bi-person-slash"></i><span class="d-none d-xl-inline ms-1">Desactivar</span></button>
+          {% else %}<button class="btn btn-sm btn-outline-success" title="Reactivar cuenta"><i class="bi bi-person-check"></i><span class="d-none d-xl-inline ms-1">Reactivar</span></button>{% endif %}
         </form>
         {% endif %}
         {% endif %}
       </td>
     </tr>
   {% empty %}
-    <tr><td colspan="7" class="text-center text-muted py-4">No se encontraron usuarios.</td></tr>
+    <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-search d-block fs-3 mb-2"></i>No se encontraron usuarios con esos criterios.</td></tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
-{% if pagina.has_other_pages %}
-<nav class="mt-3" aria-label="Páginas">
-  <ul class="pagination pagination-sm">
-    {% if pagina.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ q|urlencode }}&rol={{ rol }}&estado={{ estado }}&pagina={{ pagina.previous_page_number }}">Anterior</a></li>{% endif %}
-    <li class="page-item disabled"><span class="page-link">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span></li>
-    {% if pagina.has_next %}<li class="page-item"><a class="page-link" href="?q={{ q|urlencode }}&rol={{ rol }}&estado={{ estado }}&pagina={{ pagina.next_page_number }}">Siguiente</a></li>{% endif %}
-  </ul>
-</nav>
-{% endif %}
-<p class="small text-muted mt-2">{{ pagina.paginator.count }} usuario{{ pagina.paginator.count|pluralize }}</p>
+</div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
+  <span class="small text-muted">{{ pagina.paginator.count }} usuario{{ pagina.paginator.count|pluralize }}</span>
+  {% if pagina.has_other_pages %}
+  <nav aria-label="Páginas">
+    <ul class="pagination pagination-sm mb-0">
+      {% if pagina.has_previous %}<li class="page-item"><a class="page-link" href="?q={{ q|urlencode }}&rol={{ rol }}&estado={{ estado }}&pagina={{ pagina.previous_page_number }}">Anterior</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span></li>
+      {% if pagina.has_next %}<li class="page-item"><a class="page-link" href="?q={{ q|urlencode }}&rol={{ rol }}&estado={{ estado }}&pagina={{ pagina.next_page_number }}">Siguiente</a></li>{% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>

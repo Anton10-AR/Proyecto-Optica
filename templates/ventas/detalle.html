@@ -1,45 +1,61 @@
 {% extends 'base.html' %}
 {% block title %}Venta {{ venta.numero }} · Ópticas Casimiro{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-  <h1 class="h4 mb-0">Nota de venta {{ venta.numero }} <span class="badge text-bg-{% if venta.estado == 'VIGENTE' %}success{% else %}secondary{% endif %} fs-6 align-middle">{{ venta.get_estado_display }}</span></h1>
-  <a class="btn btn-outline-primary" href="{% url 'venta_nota' venta.pk %}" target="_blank">Imprimir nota de venta</a>
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'venta_lista' %}">Ventas</a></li>
+  <li class="breadcrumb-item active">N.º {{ venta.numero }}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-receipt"></i>Nota de venta {{ venta.numero }}
+      {% if venta.estado == 'VIGENTE' %}<span class="oc-estado oc-estado-ok fs-6">Vigente</span>{% else %}<span class="oc-estado oc-estado-inactivo fs-6">Anulada</span>{% endif %}
+    </h1>
+    <p>{{ venta.fecha|date:"d/m/Y H:i" }} · {{ venta.sucursal }}</p>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'venta_nota' venta.pk %}" target="_blank"><i class="bi bi-printer me-1"></i>Imprimir nota de venta</a>
 </div>
-<div class="row g-3">
+<div class="row g-4">
   <div class="col-lg-7">
-    <div class="card card-body shadow-sm mb-3">
-      <dl class="row mb-0">
-        <dt class="col-sm-4">Fecha</dt><dd class="col-sm-8">{{ venta.fecha|date:"d/m/Y H:i" }}</dd>
-        <dt class="col-sm-4">Vendedor</dt><dd class="col-sm-8">{{ venta.vendedor }} (ID {{ venta.vendedor_id }})</dd>
-        <dt class="col-sm-4">Sucursal</dt><dd class="col-sm-8">{{ venta.sucursal }}</dd>
-        <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8">{{ venta.cliente_nombre }}{% if venta.cliente_ci %} · CI/NIT {{ venta.cliente_ci }}{% endif %}</dd>
-        <dt class="col-sm-4">Descripción</dt><dd class="col-sm-8">{{ venta.descripcion }}</dd>
-        <dt class="col-sm-4">Total</dt><dd class="col-sm-8">Bs {{ venta.total }}</dd>
-        <dt class="col-sm-4">Pagado</dt><dd class="col-sm-8">Bs {{ venta.total_pagado }}</dd>
-        <dt class="col-sm-4">Saldo</dt><dd class="col-sm-8 fw-semibold">Bs {{ venta.saldo }}</dd>
-      </dl>
+    <div class="card mb-4">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4 text-muted fw-medium">Vendedor</dt><dd class="col-sm-8">{{ venta.vendedor }} <span class="text-muted small">(ID {{ venta.vendedor_id }})</span></dd>
+          <dt class="col-sm-4 text-muted fw-medium">Cliente</dt><dd class="col-sm-8">{{ venta.cliente_nombre }}{% if venta.cliente_ci %} · CI/NIT {{ venta.cliente_ci }}{% endif %}</dd>
+          <dt class="col-sm-4 text-muted fw-medium">Descripción</dt><dd class="col-sm-8 mb-0">{{ venta.descripcion }}</dd>
+        </dl>
+      </div>
     </div>
-    <div class="table-responsive card shadow-sm">
-      <table class="table table-sm align-middle mb-0">
-        <thead class="table-light"><tr><th>Fecha</th><th>Forma</th><th>Cobrado por</th><th class="text-end">Monto</th></tr></thead>
+    <div class="row g-3 mb-4 text-center">
+      <div class="col-4"><div class="card card-body"><div class="small text-muted">Total</div><div class="fs-5 fw-semibold text-primary">Bs {{ venta.total }}</div></div></div>
+      <div class="col-4"><div class="card card-body"><div class="small text-muted">Pagado</div><div class="fs-5 fw-semibold text-success">Bs {{ venta.total_pagado }}</div></div></div>
+      <div class="col-4"><div class="card card-body"><div class="small text-muted">Saldo</div><div class="fs-5 fw-semibold {% if venta.saldo > 0 %}text-warning{% else %}text-success{% endif %}">Bs {{ venta.saldo }}</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-wallet2 me-1 text-info"></i>Pagos</div>
+      <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Fecha</th><th>Forma</th><th>Cobrado por</th><th class="text-end">Monto</th></tr></thead>
         <tbody>
         {% for p in pagos %}
-          <tr><td>{{ p.fecha|date:"d/m/Y H:i" }}</td><td>{{ p.get_forma_pago_display }}</td><td>{{ p.usuario }}</td><td class="text-end">Bs {{ p.monto }}</td></tr>
+          <tr><td>{{ p.fecha|date:"d/m/Y H:i" }}</td><td>{{ p.get_forma_pago_display }}</td><td>{{ p.usuario }}</td><td class="text-end fw-medium">Bs {{ p.monto }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
   {% if pago_form %}
   <div class="col-lg-5">
-    <div class="card card-body shadow-sm">
-      <h2 class="h6">Cobrar saldo</h2>
-      <form method="post" action="{% url 'venta_cobrar' venta.pk %}" novalidate>
-        {% csrf_token %}
-        {% with form=pago_form %}{% include '_campos.html' %}{% endwith %}
-        <button class="btn btn-primary w-100">Registrar pago</button>
-      </form>
-      <p class="small text-muted mt-2 mb-0">El pago se registra como ingreso en su caja abierta.</p>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-cash me-1 text-info"></i>Cobrar saldo</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'venta_cobrar' venta.pk %}" novalidate>
+          {% csrf_token %}
+          {% with form=pago_form %}{% include '_campos.html' %}{% endwith %}
+          <button class="btn btn-primary w-100"><i class="bi bi-check-lg me-1"></i>Registrar pago</button>
+        </form>
+        <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>El pago se registra como ingreso en su caja abierta.</p>
+      </div>
     </div>
   </div>
   {% endif %}

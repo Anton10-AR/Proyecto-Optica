@@ -2,14 +2,22 @@
 {% block title %}Resetear contraseña · Ópticas Casimiro{% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-7 col-lg-5">
-    <h1 class="h4 mb-1">Resetear contraseña</h1>
-    <p class="text-muted">{{ usuario_obj.get_full_name|default:usuario_obj.username }} ({{ usuario_obj.username }}) deberá cambiarla en su próximo inicio de sesión.</p>
-    <form method="post" novalidate class="card card-body shadow-sm">
+  <div class="col-md-8 col-lg-6">
+    <nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'usuario_lista' %}">Usuarios</a></li>
+      <li class="breadcrumb-item active">{{ usuario_obj.username }}</li>
+    </ol></nav>
+    <div class="oc-encabezado">
+      <div>
+        <h1><i class="bi bi-key"></i>Resetear contraseña</h1>
+        <p>{{ usuario_obj.get_full_name|default:usuario_obj.username }} deberá cambiarla en su próximo inicio de sesión.</p>
+      </div>
+    </div>
+    <form method="post" novalidate class="card card-body p-4">
       {% csrf_token %}
       {% include '_campos.html' %}
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Resetear</button>
+      <div class="d-flex gap-2 border-top pt-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat me-1"></i>Resetear</button>
         <a class="btn btn-outline-secondary" href="{% url 'usuario_lista' %}">Cancelar</a>
       </div>
     </form>

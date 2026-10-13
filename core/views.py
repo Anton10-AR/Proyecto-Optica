@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required, permission_required
@@ -29,16 +30,12 @@ def usuarios_gestionables(request):
     return usuarios
 
 
-@login_required
-def inicio(request):
-    return render(request, 'core/inicio.html')
-
-
 # ---------- Sesión ----------
 
 class LoginView(auth_views.LoginView):
     form_class = LoginForm
     redirect_authenticated_user = True
+    extra_context = {'minutos_inactividad': settings.SESSION_COOKIE_AGE // 60}
 
 
 class CambiarClaveView(auth_views.PasswordChangeView):

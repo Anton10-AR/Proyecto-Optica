@@ -1,28 +1,30 @@
-<div class="table-responsive card shadow-sm">
-<table class="table table-sm align-middle mb-0">
-  <thead class="table-light">
-    <tr><th>#</th><th>Usuario</th><th>Sucursal</th><th>Apertura</th><th>Cierre</th><th class="text-end">Esperado</th><th class="text-end">Contado</th><th class="text-end">Diferencia</th><th></th></tr>
+<div class="card">
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle">
+  <thead>
+    <tr><th>#</th><th>Usuario</th><th>Sucursal</th><th>Apertura</th><th>Cierre</th><th class="text-end">Esperado</th><th class="text-end">Contado</th><th class="text-end">Arqueo</th><th></th></tr>
   </thead>
   <tbody>
   {% for s in sesiones %}
     <tr>
-      <td>{{ s.pk }}</td>
+      <td class="text-muted">{{ s.pk }}</td>
       <td>{{ s.usuario }}</td>
       <td>{{ s.sucursal }}</td>
       <td>{{ s.fecha_apertura|date:"d/m/Y H:i" }}</td>
-      <td>{% if s.fecha_cierre %}{{ s.fecha_cierre|date:"d/m/Y H:i" }}{% else %}<span class="badge text-bg-warning">Abierta</span>{% endif %}</td>
+      <td>{% if s.fecha_cierre %}{{ s.fecha_cierre|date:"d/m/Y H:i" }}{% else %}<span class="oc-estado oc-estado-aviso">Abierta</span>{% endif %}</td>
       <td class="text-end">{% if s.monto_esperado is not None %}Bs {{ s.monto_esperado }}{% else %}—{% endif %}</td>
       <td class="text-end">{% if s.monto_contado is not None %}Bs {{ s.monto_contado }}{% else %}—{% endif %}</td>
       <td class="text-end">
         {% with d=s.diferencia %}
-        {% if d is None %}—{% elif d == 0 %}<span class="text-success">Cuadra</span>{% elif d > 0 %}<span class="text-primary">Sobra Bs {{ d }}</span>{% else %}<span class="text-danger">Falta Bs {{ d|stringformat:'s'|cut:'-' }}</span>{% endif %}
+        {% if d is None %}—{% elif d == 0 %}<span class="oc-estado oc-estado-ok">Cuadra</span>{% elif d > 0 %}<span class="oc-estado oc-estado-aviso">Sobra Bs {{ d }}</span>{% else %}<span class="oc-estado oc-estado-peligro">Falta Bs {{ d|stringformat:'s'|cut:'-' }}</span>{% endif %}
         {% endwith %}
       </td>
-      <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'caja_detalle' s.pk %}">Ver</a></td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'caja_detalle' s.pk %}"><i class="bi bi-eye"></i><span class="visually-hidden">Ver</span></a></td>
     </tr>
   {% empty %}
-    <tr><td colspan="9" class="text-center text-muted py-3">Sin cajas registradas.</td></tr>
+    <tr><td colspan="9" class="text-center text-muted py-5">Sin cajas registradas.</td></tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
 </div>

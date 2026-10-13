@@ -2,8 +2,9 @@
 {% block title %}Acceso denegado · Ópticas Casimiro{% endblock %}
 {% block content %}
 <div class="text-center py-5">
-  <h1 class="display-6">Acceso denegado</h1>
-  <p class="text-muted">Su rol no tiene permiso para ver esta página o realizar esta acción.</p>
-  <a class="btn btn-primary" href="{% url 'inicio' %}">Volver al inicio</a>
+  <div class="mb-3"><span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:84px;height:84px;background:var(--bs-danger-bg-subtle);color:var(--oc-peligro)"><i class="bi bi-shield-lock fs-1"></i></span></div>
+  <h1 class="h3">Acceso denegado</h1>
+  <p class="text-muted mb-4">Su rol{% if user.rol %} ({{ user.rol }}){% endif %} no tiene permiso para ver esta página o realizar esta acción.</p>
+  <a class="btn btn-primary" href="{% url 'inicio' %}"><i class="bi bi-house-door me-1"></i>Volver al inicio</a>
 </div>
 {% endblock %}

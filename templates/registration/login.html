@@ -1,20 +1,67 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Iniciar sesión · Ópticas Casimiro{% endblock %}
-{% block content %}
-<div class="row justify-content-center pt-5">
-  <div class="col-sm-9 col-md-6 col-lg-4">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 text-center mb-1">Ópticas Casimiro</h1>
-        <p class="text-center text-muted mb-4">Ingrese con su usuario o correo</p>
+{% block body %}
+<div class="oc-login">
+  <section class="oc-login-marca">
+    <div class="d-flex align-items-center gap-2">
+      <img src="{% static 'img/logo.svg' %}" alt="" height="44">
+      <span class="fs-5 fw-semibold">Ópticas Casimiro</span>
+    </div>
+    <div>
+      <h1 class="mb-3">Cuidando cada detalle de tu visión</h1>
+      <p class="mb-0">Sistema de ventas, caja, inventario y control de asistencia del personal.</p>
+    </div>
+    <p class="small mb-0 opacity-75">SIS301 Análisis y Diseño de Sistemas · USFX</p>
+  </section>
+  <section class="oc-login-form">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4 p-sm-5">
+        <div class="text-center mb-4 d-lg-none">
+          <img src="{% static 'img/logo.svg' %}" alt="" height="56">
+          <div class="fw-semibold mt-2 text-primary">Ópticas Casimiro</div>
+        </div>
+        <h2 class="h4 mb-1">Iniciar sesión</h2>
+        <p class="text-muted mb-4">Ingrese con su usuario o correo.</p>
+        {% if form.errors %}
+        <div class="alert alert-danger d-flex gap-2"><i class="bi bi-exclamation-octagon-fill mt-1"></i>
+          <div>{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+        </div>
+        {% endif %}
         <form method="post" novalidate>
           {% csrf_token %}
-          {% include '_campos.html' %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.username.id_for_label }}">Usuario o correo</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+              {{ form.username }}
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.password.id_for_label }}">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+              {{ form.password }}
+              <button class="btn btn-outline-secondary" type="button" id="ver-clave" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
           <input type="hidden" name="next" value="{{ next }}">
-          <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+          <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-1"></i>Ingresar</button>
         </form>
+        <p class="small text-muted text-center mt-4 mb-0"><i class="bi bi-shield-lock me-1"></i>La sesión se cierra tras {{ minutos_inactividad }} minutos de inactividad.</p>
       </div>
     </div>
-  </div>
+  </section>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  document.getElementById('ver-clave').addEventListener('click', (e) => {
+    const campo = document.getElementById('{{ form.password.id_for_label }}');
+    const visible = campo.type === 'text';
+    campo.type = visible ? 'password' : 'text';
+    e.currentTarget.innerHTML = visible ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+    e.currentTarget.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+  });
+</script>
 {% endblock %}

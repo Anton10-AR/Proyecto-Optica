@@ -8,9 +8,13 @@ Este documento acompaña al código fuente del módulo. Reúne el diagrama entid
 
 ```bash
 .venv/Scripts/python manage.py migrate
-.venv/Scripts/python manage.py cargar_datos_prueba
+.venv/Scripts/python manage.py preparar_demo      # deja la base en el estado inicial de la demostración
 .venv/Scripts/python manage.py runserver
 ```
+
+`preparar_demo` borra las ventas, cajas, marcaciones, la auditoría, las sesiones abiertas y los usuarios creados durante los ensayos. Después recarga los usuarios de prueba con su contraseña original y una caja cerrada de ejemplo, con una venta que tiene saldo pendiente. Los superusuarios se conservan. Ejecútelo antes de cada ensayo y antes de presentar. Solo funciona con `DJANGO_DEBUG=True`, y pide confirmación salvo que se use `--si`.
+
+El sistema no necesita internet: Bootstrap, los íconos, HTMX y la tipografía están dentro del proyecto (`static/vendor/`).
 
 Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. Todos tienen la contraseña **`Casimiro2026!`**; también puede ingresar con el correo, por ejemplo `cajero1@opticascasimiro.test`.
 
@@ -38,7 +42,15 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 4. Revise *Administración → Registro de actividad*: aparecen los inicios de sesión, los intentos fallidos, los cambios de contraseña y la creación y desactivación de cuentas.
 5. Inicie sesión con el usuario creado en el paso 3. El sistema obliga a cambiar la contraseña inicial antes de continuar.
 
-**Marcación de asistencia:** el navegador pide permiso para usar la ubicación y la marcación solo se acepta dentro del radio de la sucursal. Los navegadores solo permiten la geolocalización en `localhost` o con HTTPS. Para probar desde un celular, el sistema debe publicarse con HTTPS. Para probar desde la PC, ajuste en *Administración → Sucursales* las coordenadas de la sucursal a su ubicación actual, o use la simulación de ubicación de las herramientas de desarrollo del navegador (Chrome: *Sensors → Location*).
+**Marcación de asistencia desde la laptop:** la marcación solo se acepta dentro del radio de la sucursal (150 m en los datos de prueba). Para demostrarla sin estar en la sucursal, simule la ubicación en Chrome o Edge:
+
+1. Inicie sesión como `empleado1` y abra *Asistencia → Marcar entrada/salida*.
+2. Abra las herramientas de desarrollo (F12) y luego ⋮ → *More tools* → *Sensors*.
+3. En *Location*, elija *Other…* e ingrese las coordenadas de la Sucursal Centro: latitud `-19.0475`, longitud `-65.2593`.
+4. Pulse *Marcar entrada*. Cuando el navegador lo pida, permita el acceso a la ubicación.
+5. Para mostrar el rechazo, cambie la latitud a `-19.0600` (unos 1,4 km) y vuelva a marcar. El sistema responde que está fuera del radio permitido.
+
+La geolocalización solo funciona en `localhost` o con HTTPS, así que abra el sistema en `http://127.0.0.1:8000` o `http://localhost:8000`, no con la IP de la red.
 
 ## 2. Diagrama entidad-relación
 

@@ -1,51 +1,54 @@
 {% extends 'base.html' %}
 {% block title %}Mi caja · Ópticas Casimiro{% endblock %}
 {% block content %}
-<h1 class="h4 mb-3">Mi caja</h1>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-safe"></i>Mi caja</h1>
+    <p>{{ user.sucursal|default:"Sin sucursal asignada" }}{% if sesion %} · Caja #{{ sesion.pk }} abierta el {{ sesion.fecha_apertura|date:"d/m/Y \a \l\a\s H:i" }}{% endif %}</p>
+  </div>
+  {% if sesion and perms.ventas.registrar_venta %}<a class="btn btn-primary" href="{% url 'venta_crear' %}"><i class="bi bi-plus-circle me-1"></i>Nueva venta</a>{% endif %}
+</div>
+
 {% if not sesion %}
-<div class="row">
+<div class="row g-4">
   <div class="col-md-6 col-lg-5">
-    <div class="card shadow-sm">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-unlock me-1 text-info"></i>Abrir caja</div>
       <div class="card-body">
-        <h2 class="h6">Abrir caja</h2>
-        <p class="small text-muted">Sucursal: {{ user.sucursal|default:"sin asignar" }}</p>
+        <p class="small text-muted">Cuente el efectivo con el que inicia el turno. Necesita una caja abierta para registrar ventas y cobros.</p>
         <form method="post" action="{% url 'caja_abrir' %}" novalidate>
           {% csrf_token %}
           {% with form=abrir_form %}{% include '_campos.html' %}{% endwith %}
-          <button class="btn btn-primary">Abrir caja</button>
+          <button class="btn btn-primary w-100"><i class="bi bi-unlock me-1"></i>Abrir caja</button>
         </form>
       </div>
     </div>
   </div>
 </div>
 {% else %}
-<div class="row g-3 mb-3">
-  <div class="col-sm-6 col-lg-3"><div class="card card-body shadow-sm"><div class="small text-muted">Caja</div><div class="fs-5">#{{ sesion.pk }} · {{ sesion.sucursal }}</div></div></div>
-  <div class="col-sm-6 col-lg-3"><div class="card card-body shadow-sm"><div class="small text-muted">Abierta</div><div class="fs-5">{{ sesion.fecha_apertura|date:"d/m/Y H:i" }}</div></div></div>
-  <div class="col-sm-6 col-lg-3"><div class="card card-body shadow-sm"><div class="small text-muted">Monto inicial</div><div class="fs-5">Bs {{ sesion.monto_inicial }}</div></div></div>
-  <div class="col-sm-6 col-lg-3"><div class="card card-body shadow-sm"><div class="small text-muted">Efectivo esperado</div><div class="fs-5 fw-semibold">Bs {{ sesion.efectivo_esperado }}</div></div></div>
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3"><div class="card card-body h-100"><div class="oc-indicador"><span class="oc-icono"><i class="bi bi-box-arrow-in-down"></i></span><div><div class="oc-etiqueta">Monto inicial</div><div class="oc-valor">Bs {{ sesion.monto_inicial }}</div></div></div></div></div>
+  <div class="col-sm-6 col-lg-3"><div class="card card-body h-100"><div class="oc-indicador"><span class="oc-icono"><i class="bi bi-arrow-down-circle"></i></span><div><div class="oc-etiqueta">Movimientos</div><div class="oc-valor">{{ movimientos|length }}</div></div></div></div></div>
+  <div class="col-sm-12 col-lg-6"><div class="card card-body h-100" style="background:var(--oc-petroleo-claro)"><div class="oc-indicador"><span class="oc-icono bg-white"><i class="bi bi-cash-stack"></i></span><div><div class="oc-etiqueta">Efectivo esperado en caja</div><div class="oc-valor fs-3">Bs {{ sesion.efectivo_esperado }}</div><div class="small text-muted">Monto inicial + ingresos − egresos en efectivo</div></div></div></div></div>
 </div>
-<div class="row g-3">
+<div class="row g-4">
   <div class="col-lg-8">
-    <div class="card shadow-sm">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span>Movimientos</span>
-        {% if perms.ventas.registrar_venta %}<a class="btn btn-sm btn-primary" href="{% url 'venta_crear' %}">Nueva venta</a>{% endif %}
-      </div>
+    <div class="card">
+      <div class="card-header"><i class="bi bi-list-ul me-1 text-info"></i>Movimientos del turno</div>
       <div class="table-responsive">
-      <table class="table table-sm align-middle mb-0">
-        <thead class="table-light"><tr><th>Hora</th><th>Tipo</th><th>Forma</th><th>Concepto</th><th class="text-end">Monto</th></tr></thead>
+      <table class="table table-sm align-middle">
+        <thead><tr><th>Hora</th><th>Tipo</th><th>Forma</th><th>Concepto</th><th class="text-end">Monto</th></tr></thead>
         <tbody>
         {% for m in movimientos %}
           <tr>
             <td>{{ m.fecha|date:"H:i" }}</td>
-            <td>{% if m.tipo == 'INGRESO' %}<span class="text-success">Ingreso</span>{% else %}<span class="text-danger">Egreso</span>{% endif %}</td>
+            <td>{% if m.tipo == 'INGRESO' %}<span class="oc-estado oc-estado-ok">Ingreso</span>{% else %}<span class="oc-estado oc-estado-peligro">Egreso</span>{% endif %}</td>
             <td>{{ m.get_forma_pago_display }}</td>
             <td>{{ m.concepto }}</td>
-            <td class="text-end">Bs {{ m.monto }}</td>
+            <td class="text-end fw-medium">{% if m.tipo == 'EGRESO' %}−{% endif %}Bs {{ m.monto }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="5" class="text-center text-muted py-3">Sin movimientos.</td></tr>
+          <tr><td colspan="5" class="text-center text-muted py-5"><i class="bi bi-inbox d-block fs-3 mb-2"></i>Aún no hay movimientos en este turno.</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -53,24 +56,24 @@
     </div>
   </div>
   <div class="col-lg-4">
-    <div class="card shadow-sm mb-3">
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-arrow-left-right me-1 text-info"></i>Registrar movimiento</div>
       <div class="card-body">
-        <h2 class="h6">Registrar movimiento</h2>
         <form method="post" action="{% url 'caja_movimiento' %}" novalidate>
           {% csrf_token %}
           {% with form=movimiento_form %}{% include '_campos.html' %}{% endwith %}
-          <button class="btn btn-outline-primary w-100">Registrar</button>
+          <button class="btn btn-outline-primary w-100"><i class="bi bi-plus-lg me-1"></i>Registrar</button>
         </form>
       </div>
     </div>
-    <div class="card shadow-sm border-danger-subtle">
+    <div class="card border-danger-subtle">
+      <div class="card-header text-danger"><i class="bi bi-lock me-1"></i>Cerrar caja (arqueo)</div>
       <div class="card-body">
-        <h2 class="h6">Cerrar caja (arqueo)</h2>
         <form method="post" action="{% url 'caja_cerrar' %}" novalidate
               onsubmit="return confirm('¿Cerrar la caja? Ya no podrá registrar movimientos en ella.');">
           {% csrf_token %}
           {% with form=cerrar_form %}{% include '_campos.html' %}{% endwith %}
-          <button class="btn btn-danger w-100">Cerrar caja</button>
+          <button class="btn btn-danger w-100"><i class="bi bi-lock me-1"></i>Cerrar caja</button>
         </form>
       </div>
     </div>
@@ -79,7 +82,7 @@
 {% endif %}
 
 {% if cerradas %}
-<h2 class="h6 mt-4">Mis cajas cerradas recientes</h2>
+<h2 class="h6 text-uppercase text-muted fw-semibold mt-5 mb-3">Mis cajas cerradas recientes</h2>
 {% include 'caja/_tabla_sesiones.html' with sesiones=cerradas %}
 {% endif %}
 {% endblock %}

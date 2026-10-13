@@ -1,27 +1,32 @@
 {% extends 'base.html' %}
 {% block title %}Sucursales · Ópticas Casimiro{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h4 mb-0">Sucursales</h1>
-  {% if perms.core.add_sucursal %}<a class="btn btn-primary" href="{% url 'sucursal_crear' %}">Nueva sucursal</a>{% endif %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-shop"></i>Sucursales</h1>
+    <p>Ubicación y radio permitido para marcar asistencia.</p>
+  </div>
+  {% if perms.core.add_sucursal %}<a class="btn btn-primary" href="{% url 'sucursal_crear' %}"><i class="bi bi-plus-lg me-1"></i>Nueva sucursal</a>{% endif %}
 </div>
-<div class="table-responsive card shadow-sm">
-<table class="table align-middle mb-0">
-  <thead class="table-light"><tr><th>Nombre</th><th>Dirección</th><th>Ubicación</th><th>Radio</th><th>Estado</th><th></th></tr></thead>
+<div class="card">
+<div class="table-responsive">
+<table class="table align-middle">
+  <thead><tr><th>Nombre</th><th>Dirección</th><th>Ubicación</th><th>Radio</th><th>Estado</th><th></th></tr></thead>
   <tbody>
   {% for s in object_list %}
     <tr>
-      <td>{{ s.nombre }}</td>
+      <td class="fw-medium">{{ s.nombre }}</td>
       <td>{{ s.direccion }}</td>
-      <td><a href="https://www.google.com/maps?q={{ s.latitud }},{{ s.longitud }}" target="_blank" rel="noopener">{{ s.latitud }}, {{ s.longitud }}</a></td>
+      <td><a href="https://www.google.com/maps?q={{ s.latitud }},{{ s.longitud }}" target="_blank" rel="noopener"><i class="bi bi-geo-alt me-1"></i>{{ s.latitud }}, {{ s.longitud }}</a></td>
       <td>{{ s.radio_metros }} m</td>
-      <td>{% if s.activa %}<span class="badge text-bg-success">Activa</span>{% else %}<span class="badge text-bg-secondary">Inactiva</span>{% endif %}</td>
-      <td class="text-end">{% if perms.core.change_sucursal %}<a class="btn btn-sm btn-outline-primary" href="{% url 'sucursal_editar' s.pk %}">Editar</a>{% endif %}</td>
+      <td>{% if s.activa %}<span class="oc-estado oc-estado-ok">Activa</span>{% else %}<span class="oc-estado oc-estado-inactivo">Inactiva</span>{% endif %}</td>
+      <td class="text-end">{% if perms.core.change_sucursal %}<a class="btn btn-sm btn-outline-primary" href="{% url 'sucursal_editar' s.pk %}"><i class="bi bi-pencil me-1"></i>Editar</a>{% endif %}</td>
     </tr>
   {% empty %}
-    <tr><td colspan="6" class="text-center text-muted py-4">No hay sucursales registradas.</td></tr>
+    <tr><td colspan="6" class="text-center text-muted py-5">No hay sucursales registradas.</td></tr>
   {% endfor %}
   </tbody>
 </table>
+</div>
 </div>
 {% endblock %}

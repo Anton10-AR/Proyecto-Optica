@@ -19,7 +19,7 @@ Para leer los archivos en este equipo, donde no hay pandoc ni pdftoppm:
 
 ## Stack
 
-Django 6.1 con Python 3.14, PostgreSQL 18 local, plantillas de Django con Bootstrap 5 y HTMX (ambos desde CDN, sin paso de compilación). Contraseñas con Argon2 (`argon2-cffi`). El entorno virtual está en `.venv/` (Windows).
+Django 6.1 con Python 3.14, PostgreSQL 18 local, plantillas de Django con Bootstrap 5.3, Bootstrap Icons, HTMX y la fuente Inter, todos copiados en `static/vendor/` (sin CDN ni paso de compilación, para que la demostración funcione sin internet). Contraseñas con Argon2 (`argon2-cffi`). El entorno virtual está en `.venv/` (Windows).
 
 ## Comandos
 
@@ -36,6 +36,7 @@ Django 6.1 con Python 3.14, PostgreSQL 18 local, plantillas de Django con Bootst
 .venv/Scripts/python manage.py configurar_roles       # crea/sincroniza los grupos según core/roles.py
 .venv/Scripts/python manage.py cargar_datos_prueba    # roles, sucursales y un usuario por rol (clave Casimiro2026!)
 .venv/Scripts/python manage.py matriz_permisos        # imprime la matriz rol-permiso en Markdown
+.venv/Scripts/python manage.py preparar_demo          # borra operaciones, auditoría y usuarios de ensayo y recarga los datos de prueba (solo con DEBUG)
 ```
 
 Los tests crean una base de datos temporal en PostgreSQL, así que el usuario de `.env` necesita permiso `CREATEDB`. `core/tests.py` define `BaseTest` y `crear_usuario`, que reutilizan los tests de las demás apps.
@@ -64,7 +65,9 @@ Es un monolito modular: un proyecto Django (`config/`) con una app por módulo d
 - **Cuentas:** el login acepta usuario o correo (`core/backends.py`). La baja es lógica (`is_active=False`), y todas las FK hacia el usuario son `PROTECT`, así que nunca se borra un usuario. Una contraseña creada o reseteada por el administrador marca `debe_cambiar_clave`, y `core.middleware.CambioClaveObligatorioMiddleware` obliga a cambiarla. Un administrador que no es superusuario no puede modificar superusuarios (`usuarios_gestionables`).
 - **Auditoría:** las acciones de seguridad se registran con `core.auditoria.registrar(Accion.X, request, afectado=...)`. Los inicios y cierres de sesión, y los intentos fallidos, se registran solos mediante las señales de `core/signals.py`.
 - **Servicios:** la lógica de negocio va en `servicios.py` de cada app (`caja.servicios`, `ventas.servicios`, `asistencia.servicios`) y lanza `ValidationError` con mensajes para el usuario. Las vistas solo validan formularios y muestran los mensajes. Cobrar un pago siempre pasa por `ventas.servicios.registrar_pago`, que crea el `MovimientoCaja` en la caja abierta del usuario dentro de la misma transacción.
-- **Formularios y plantillas:** los formularios heredan de `core.forms.BootstrapMixin`, y las plantillas los dibujan con `{% include '_campos.html' %}`.
+- **Formularios y plantillas:** los formularios heredan de `core.forms.BootstrapMixin`, y las plantillas los dibujan con `{% include '_campos.html' %}`, o con `with columnas=2` para dos columnas.
+- **Diseño visual:** la paleta y los componentes propios (`.oc-encabezado`, `.oc-indicador`, `.oc-estado-*`, `.btn-acento`) están en `static/css/casimiro.css` y documentados en `docs/identidad_visual.md`. Cada pantalla empieza con `.oc-encabezado` (ícono de Bootstrap Icons, título y acción principal) y pone las tablas dentro de `.card`. No uses colores hex sueltos: usa las variables `--oc-*` o las clases de Bootstrap ya ajustadas.
+- **Inicio:** `config/views.py:inicio` combina datos de todas las apps y vive a nivel de proyecto para que `core` no dependa de las demás. Cada bloque del panel se muestra según un permiso.
 - **Consistencia del stock (RNF05):** toda operación que mueva stock debe actualizar el stock y registrar el kardex dentro de una sola `transaction.atomic()`, bloqueando el artículo con `select_for_update()`. Esto incluye registrar una venta, anularla, registrar ingresos, salidas y traspasos. Pon esta lógica en funciones de servicio de `inventario`, no en vistas ni en el admin, para que `ventas` la reutilice.
 - **Dependencia entre apps:** `core` no depende de ninguna. `caja` y `asistencia` dependen de `core`. `ventas` depende de `core`, `caja` y, más adelante, de `inventario`. Nunca al revés.
 - **Panel de administración:** el admin de Django (`/admin/`) es solo para superusuarios (`is_staff`). Los roles del sistema trabajan con vistas propias, incluidos los CRUD.

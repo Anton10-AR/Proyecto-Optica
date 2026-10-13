@@ -4,8 +4,10 @@ from django.urls import include, path
 
 from core import views as core_views
 
+from . import views
+
 urlpatterns = [
-    path('', core_views.inicio, name='inicio'),
+    path('', views.inicio, name='inicio'),
     path('cuentas/login/', core_views.LoginView.as_view(), name='login'),
     path('cuentas/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('cuentas/clave/', core_views.CambiarClaveView.as_view(), name='password_change'),
