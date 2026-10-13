@@ -29,6 +29,8 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 | `almacen`, `optico`, `empleado2` | Otros roles | — | Mismo acceso que Empleado por ahora |
 | `exempleado` | Empleado | Centro | **Cuenta desactivada**: el inicio de sesión se rechaza |
 
+Las capturas de cada paso están en [`capturas/`](capturas/).
+
 **Recorrido sugerido:**
 
 1. Inicie sesión como `empleado1` y compruebe que el menú solo muestra *Asistencia*. Si intenta entrar a `/administracion/usuarios/`, obtiene *Acceso denegado*.

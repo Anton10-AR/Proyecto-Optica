@@ -123,6 +123,7 @@ Las pruebas crean una base de datos temporal, así que el usuario de PostgreSQL 
 ## Documentación
 
 - [`docs/gestion_usuarios.md`](docs/gestion_usuarios.md): segunda entrega. Incluye la guía de demostración, el diagrama entidad-relación, la matriz de permisos y el cumplimiento del enunciado.
+- [`docs/capturas/`](docs/capturas/): capturas de las pantallas principales, con lo que muestra cada una.
 - [`docs/identidad_visual.md`](docs/identidad_visual.md): paleta de colores, tipografía y componentes de la interfaz.
 - [`docs/sql/`](docs/sql/): scripts SQL del esquema y de los datos de prueba.
 - [`docs/vision/`](docs/vision/): generador del documento de visión en Word.

@@ -71,7 +71,11 @@ class Command(BaseCommand):
         cajero, empleado = usuarios['cajero1'], usuarios['empleado1']
         if SesionCaja.objects.filter(usuario=cajero).exists():
             return
-        ayer = timezone.now() - timedelta(days=1)
+        ayer = timezone.localtime() - timedelta(days=1)
+
+        def a_las(hora, minuto=0):
+            return ayer.replace(hour=hora, minute=minuto, second=0, microsecond=0)
+
         sesion = SesionCaja.objects.create(usuario=cajero, sucursal=cajero.sucursal, monto_inicial=Decimal('200'))
         venta = Venta.objects.create(
             vendedor=cajero, sucursal=cajero.sucursal, cliente_nombre='Cliente de prueba', cliente_ci='5555555',
@@ -81,14 +85,18 @@ class Command(BaseCommand):
             sesion=sesion, usuario=cajero, tipo=MovimientoCaja.Tipo.INGRESO, forma_pago=FormaPago.EFECTIVO,
             monto=Decimal('350'), concepto=f'Pago de la nota de venta {venta.numero}',
         )
-        Pago.objects.create(venta=venta, usuario=cajero, movimiento_caja=movimiento,
-                            monto=Decimal('350'), forma_pago=FormaPago.EFECTIVO)
+        pago = Pago.objects.create(venta=venta, usuario=cajero, movimiento_caja=movimiento,
+                                   monto=Decimal('350'), forma_pago=FormaPago.EFECTIVO)
         sesion.monto_esperado = sesion.efectivo_esperado
         sesion.monto_contado = Decimal('550')
         sesion.estado = SesionCaja.Estado.CERRADA
-        sesion.fecha_cierre = timezone.now()
+        sesion.fecha_cierre = a_las(19, 30)
         sesion.save()
-        SesionCaja.objects.filter(pk=sesion.pk).update(fecha_apertura=ayer)
+        # Las fechas con auto_now_add se corrigen con update() para que toda la operación quede en el día anterior.
+        SesionCaja.objects.filter(pk=sesion.pk).update(fecha_apertura=a_las(8, 30))
+        Venta.objects.filter(pk=venta.pk).update(fecha=a_las(10, 15))
+        MovimientoCaja.objects.filter(pk=movimiento.pk).update(fecha=a_las(10, 15))
+        Pago.objects.filter(pk=pago.pk).update(fecha=a_las(10, 15))
 
         sucursal = empleado.sucursal
         for tipo, hora in ((Marcacion.Tipo.ENTRADA, 8), (Marcacion.Tipo.SALIDA, 12),
@@ -97,5 +105,4 @@ class Command(BaseCommand):
                 usuario=empleado, sucursal=sucursal, tipo=tipo,
                 latitud=sucursal.latitud, longitud=sucursal.longitud, distancia_metros=0,
             )
-            momento = timezone.localtime(ayer).replace(hour=hora, minute=30, second=0, microsecond=0)
-            Marcacion.objects.filter(pk=marcacion.pk).update(fecha_hora=momento)
+            Marcacion.objects.filter(pk=marcacion.pk).update(fecha_hora=a_las(hora, 30))
