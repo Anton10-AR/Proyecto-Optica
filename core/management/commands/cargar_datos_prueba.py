@@ -15,11 +15,11 @@ from ventas.models import Pago, Venta
 CLAVE_PRUEBA = 'Casimiro2026!'
 
 # nombre, dirección, latitud, longitud, radio de marcación (m).
-# La Sucursal Centro está en la Facultad de Ciencias y Tecnología (USFX), donde se hace la demostración,
-# con un radio amplio porque la ubicación de una laptop por Wi-Fi puede errar en cientos de metros.
+# Para las pruebas, ambas sucursales están en la Facultad de Ciencias y Tecnología (USFX), donde se hace la
+# demostración, con un radio amplio porque la ubicación de una laptop por Wi-Fi puede errar en cientos de metros.
 SUCURSALES = [
     ('Sucursal Centro', 'Dirección de prueba 1, Sucre', Decimal('-19.039699'), Decimal('-65.256900'), 300),
-    ('Sucursal Norte', 'Dirección de prueba 2, Sucre', Decimal('-19.033000'), Decimal('-65.262500'), 150),
+    ('Sucursal Norte', 'Dirección de prueba 2, Sucre', Decimal('-19.039699'), Decimal('-65.256900'), 300),
 ]
 
 # usuario, nombres, apellidos, CI, teléfono, rol, índice de sucursal, activo

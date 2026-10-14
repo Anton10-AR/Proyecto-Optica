@@ -43,7 +43,7 @@ INSERT INTO public.auth_group (id, name) VALUES (7, 'Empleado');
 --
 
 INSERT INTO public.core_sucursal (id, nombre, direccion, latitud, longitud, radio_metros, activa) VALUES (1, 'Sucursal Centro', 'Dirección de prueba 1, Sucre', -19.039699, -65.256900, 300, true);
-INSERT INTO public.core_sucursal (id, nombre, direccion, latitud, longitud, radio_metros, activa) VALUES (2, 'Sucursal Norte', 'Dirección de prueba 2, Sucre', -19.033000, -65.262500, 150, true);
+INSERT INTO public.core_sucursal (id, nombre, direccion, latitud, longitud, radio_metros, activa) VALUES (2, 'Sucursal Norte', 'Dirección de prueba 2, Sucre', -19.039699, -65.256900, 300, true);
 
 
 --

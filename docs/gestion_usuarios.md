@@ -44,7 +44,7 @@ Las capturas de cada paso están en [`capturas/`](capturas/).
 4. Revise *Administración → Registro de actividad*: aparecen los inicios de sesión, los intentos fallidos, los cambios de contraseña y la creación y desactivación de cuentas.
 5. Inicie sesión con el usuario creado en el paso 3. El sistema obliga a cambiar la contraseña inicial antes de continuar.
 
-**Marcación de asistencia desde la laptop:** la marcación solo se acepta dentro del radio de la sucursal. En los datos de prueba, la **Sucursal Centro** está en la Facultad de Ciencias y Tecnología (latitud `-19.039699`, longitud `-65.256900`), con un radio de 300 m. La Sucursal Norte está a unos 950 m, con un radio de 150 m.
+**Marcación de asistencia desde la laptop:** la marcación solo se acepta dentro del radio de la sucursal. En los datos de prueba, la **Sucursal Centro** y la **Sucursal Norte** están en la Facultad de Ciencias y Tecnología (latitud `-19.039699`, longitud `-65.256900`), con un radio de 300 m, para que el personal de las dos pueda marcar desde ahí.
 
 - **En la facultad:** inicie sesión como `empleado1`, abra *Asistencia → Marcar entrada/salida* y pulse *Marcar entrada*. Cuando el navegador lo pida, permita el acceso a la ubicación. Se usa la ubicación real de la laptop. Si el Wi-Fi la ubica fuera del radio, simule la ubicación como se explica abajo.
 - **En otro lugar, o para obtener un resultado exacto:** simule la ubicación en Chrome o Edge:
