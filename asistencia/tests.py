@@ -44,3 +44,7 @@ class AsistenciaTests(BaseTest):
         self.client.force_login(self.empleado)
         pagina = self.client.get(reverse('asistencia_mi_historial')).context['pagina']
         self.assertEqual({m.usuario for m in pagina}, {self.empleado})
+
+    def test_mensaje_fuera_del_radio_nombra_la_sucursal_una_vez(self):
+        with self.assertRaisesMessage(ValidationError, f'm de {self.sucursal}. Debe estar a menos de'):
+            servicios.registrar_marcacion(self.empleado, *FUERA)

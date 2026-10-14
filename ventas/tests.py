@@ -64,3 +64,9 @@ class VentaTests(BaseTest):
         self.client.force_login(otro)
         self.assertEqual(self.client.get(reverse('venta_detalle', args=[venta.pk])).status_code, 403)
         self.assertEqual(len(self.client.get(reverse('venta_lista')).context['pagina']), 0)
+
+    def test_mensaje_de_saldo_usa_formato_local(self):
+        abrir_caja(self.cajero, Decimal('0'))
+        venta = self.registrar(total=Decimal('1450'), monto_pago=Decimal('700'))
+        with self.assertRaisesMessage(ValidationError, 'saldo pendiente (Bs 750,00)'):
+            servicios.registrar_pago(venta, self.cajero, Decimal('800'), 'QR')

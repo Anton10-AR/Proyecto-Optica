@@ -14,10 +14,12 @@ from ventas.models import Pago, Venta
 
 CLAVE_PRUEBA = 'Casimiro2026!'
 
-# Coordenadas de prueba en el centro de Sucre; ajústelas a la ubicación real de cada sucursal.
+# nombre, dirección, latitud, longitud, radio de marcación (m).
+# La Sucursal Centro está en la Facultad de Ciencias y Tecnología (USFX), donde se hace la demostración,
+# con un radio amplio porque la ubicación de una laptop por Wi-Fi puede errar en cientos de metros.
 SUCURSALES = [
-    ('Sucursal Centro', 'Dirección de prueba 1, Sucre', Decimal('-19.047500'), Decimal('-65.259300')),
-    ('Sucursal Norte', 'Dirección de prueba 2, Sucre', Decimal('-19.033000'), Decimal('-65.262500')),
+    ('Sucursal Centro', 'Dirección de prueba 1, Sucre', Decimal('-19.039699'), Decimal('-65.256900'), 300),
+    ('Sucursal Norte', 'Dirección de prueba 2, Sucre', Decimal('-19.033000'), Decimal('-65.262500'), 150),
 ]
 
 # usuario, nombres, apellidos, CI, teléfono, rol, índice de sucursal, activo
@@ -42,9 +44,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         roles.configurar_roles()
         sucursales = []
-        for nombre, direccion, lat, lon in SUCURSALES:
+        for nombre, direccion, lat, lon, radio in SUCURSALES:
             sucursal, _ = Sucursal.objects.update_or_create(
-                nombre=nombre, defaults={'direccion': direccion, 'latitud': lat, 'longitud': lon, 'radio_metros': 150},
+                nombre=nombre, defaults={'direccion': direccion, 'latitud': lat, 'longitud': lon, 'radio_metros': radio},
             )
             sucursales.append(sucursal)
 

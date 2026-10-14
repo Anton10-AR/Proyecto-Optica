@@ -44,13 +44,14 @@ Las capturas de cada paso están en [`capturas/`](capturas/).
 4. Revise *Administración → Registro de actividad*: aparecen los inicios de sesión, los intentos fallidos, los cambios de contraseña y la creación y desactivación de cuentas.
 5. Inicie sesión con el usuario creado en el paso 3. El sistema obliga a cambiar la contraseña inicial antes de continuar.
 
-**Marcación de asistencia desde la laptop:** la marcación solo se acepta dentro del radio de la sucursal (150 m en los datos de prueba). Para demostrarla sin estar en la sucursal, simule la ubicación en Chrome o Edge:
+**Marcación de asistencia desde la laptop:** la marcación solo se acepta dentro del radio de la sucursal. En los datos de prueba, la **Sucursal Centro** está en la Facultad de Ciencias y Tecnología (latitud `-19.039699`, longitud `-65.256900`), con un radio de 300 m. La Sucursal Norte está a unos 950 m, con un radio de 150 m.
 
-1. Inicie sesión como `empleado1` y abra *Asistencia → Marcar entrada/salida*.
-2. Abra las herramientas de desarrollo (F12) y luego ⋮ → *More tools* → *Sensors*.
-3. En *Location*, elija *Other…* e ingrese las coordenadas de la Sucursal Centro: latitud `-19.0475`, longitud `-65.2593`.
-4. Pulse *Marcar entrada*. Cuando el navegador lo pida, permita el acceso a la ubicación.
-5. Para mostrar el rechazo, cambie la latitud a `-19.0600` (unos 1,4 km) y vuelva a marcar. El sistema responde que está fuera del radio permitido.
+- **En la facultad:** inicie sesión como `empleado1`, abra *Asistencia → Marcar entrada/salida* y pulse *Marcar entrada*. Cuando el navegador lo pida, permita el acceso a la ubicación. Se usa la ubicación real de la laptop. Si el Wi-Fi la ubica fuera del radio, simule la ubicación como se explica abajo.
+- **En otro lugar, o para obtener un resultado exacto:** simule la ubicación en Chrome o Edge:
+    1. Abra las herramientas de desarrollo (F12) y luego ⋮ → *More tools* → *Sensors*.
+    2. En *Location*, elija *Other…* e ingrese latitud `-19.039780` y longitud `-65.256980` (a unos 12 m de la sucursal).
+    3. Pulse *Marcar entrada*.
+- **Para mostrar el rechazo:** simule latitud `-19.050000` y longitud `-65.256900` (a unos 1,1 km) y vuelva a marcar. El sistema responde que está fuera del radio permitido.
 
 La geolocalización solo funciona en `localhost` o con HTTPS, así que abra el sistema en `http://127.0.0.1:8000` o `http://localhost:8000`, no con la IP de la red.
 

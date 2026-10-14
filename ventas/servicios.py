@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils.formats import number_format
 
 from caja.models import MovimientoCaja
 from caja.servicios import caja_abierta, registrar_movimiento
@@ -14,7 +15,7 @@ def registrar_pago(venta, usuario, monto, forma_pago):
     if venta.estado != Venta.Estado.VIGENTE:
         raise ValidationError('No se puede cobrar una venta anulada.')
     if monto > venta.saldo:
-        raise ValidationError(f'El pago supera el saldo pendiente (Bs {venta.saldo}).')
+        raise ValidationError(f'El pago supera el saldo pendiente (Bs {number_format(venta.saldo, 2)}).')
     movimiento = registrar_movimiento(
         usuario, MovimientoCaja.Tipo.INGRESO, forma_pago, monto, f'Pago de la nota de venta {venta.numero}',
     )

@@ -56,7 +56,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('\nDemostración lista.'))
         self.stdout.write(f'Contraseña de los usuarios de prueba: {CLAVE_PRUEBA}')
         self.stdout.write('Usuarios: ' + ', '.join(f'{u[0]} ({u[5]})' for u in USUARIOS))
-        self.stdout.write('\nPara marcar asistencia desde la laptop, simule la ubicación en Chrome/Edge '
-                          '(F12 → ⋮ → More tools → Sensors → Location) con estas coordenadas:')
-        for nombre, _, lat, lon in SUCURSALES:
-            self.stdout.write(f'  {nombre}: latitud {lat}, longitud {lon}')
+        self.stdout.write('\nPara marcar asistencia, la ubicación debe estar dentro del radio de la sucursal. '
+                          'Fuera de ella, simúlela en Chrome/Edge (F12 → ⋮ → More tools → Sensors → Location):')
+        for nombre, _, lat, lon, radio in SUCURSALES:
+            self.stdout.write(f'  {nombre}: latitud {lat}, longitud {lon} (radio {radio} m)')

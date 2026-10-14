@@ -40,7 +40,7 @@ def registrar_marcacion(usuario, latitud, longitud):
     distancia = distancia_metros(float(latitud), float(longitud), float(sucursal.latitud), float(sucursal.longitud))
     if distancia > sucursal.radio_metros:
         raise ValidationError(
-            f'Está a {distancia:.0f} m de la sucursal {sucursal}. '
+            f'Está a {distancia:.0f} m de {sucursal}. '
             f'Debe estar a menos de {sucursal.radio_metros} m para marcar.'
         )
     return Marcacion.objects.create(
