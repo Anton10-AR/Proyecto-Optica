@@ -2,6 +2,8 @@
 
 Capturas del sistema con los datos de prueba (`preparar_demo`), tomadas a 1366 × 860 px. Siguen el orden del recorrido de la demostración. Todos los datos son ficticios.
 
+Los pies de figura numerados para el informe están en [`subtitulos.md`](subtitulos.md).
+
 ## Inicio de sesión y control de acceso
 
 | # | Captura | Usuario | Qué muestra |
