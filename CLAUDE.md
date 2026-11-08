@@ -52,7 +52,7 @@ Es un monolito modular: un proyecto Django (`config/`) con una app por módulo d
 | App | Módulo | Requisitos |
 |---|---|---|
 | `core` | Usuarios, roles, sucursales, auditoría y elementos compartidos | RF16, RF29, RF30, RF36, RNF03 |
-| `inventario` | Artículos, proveedores, ingresos/salidas, kardex y alertas de stock (aún vacía) | RF08–RF14 |
+| `inventario` | Artículos, proveedores, ingresos/salidas, kardex y alertas de stock (por ahora, el catálogo: categorías, proveedores, artículos y existencias) | RF08–RF14 |
 | `caja` | Apertura, movimientos y cierre de caja con arqueo | RF33–RF35 |
 | `ventas` | Ventas, pagos, nota de venta, recetas, órdenes de trabajo y reportes | RF01–RF07, RF21–RF25, RF31–RF32 |
 | `asistencia` | Marcaciones, horarios, tolerancia, permisos, feriados y reportes | RF15, RF17–RF20, RF26–RF28 |
@@ -82,6 +82,11 @@ Ya están incorporadas en el documento de visión v2. Este resumen sirve para ap
 - **Pagos y caja:** una venta puede cobrarse en varios pagos (anticipo y saldo a la entrega). Cada pago lleva su propia forma de pago (efectivo, QR, tarjeta) y se registra como ingreso en la caja abierta de quien cobra. Cada usuario tiene como máximo una caja abierta (restricción en la base de datos). El arqueo compara solo el efectivo: monto inicial + ingresos − egresos en efectivo. Caja se incorporó en la segunda entrega porque el enunciado del docente la exige.
 - **Stock por sucursal:** cada sucursal tiene sus propias existencias. Los traspasos del RF10 mueven mercadería entre sucursales y generan una salida en el origen y un ingreso en el destino.
 - **Kardex valorado por promedio ponderado:** cada ingreso recalcula el costo promedio del artículo. Las salidas se valoran al costo promedio vigente.
+- **Costo promedio único por artículo**, no por sucursal (`Articulo.costo_promedio`): un traspaso mueve unidades, no cambia el costo.
+- **Lunas por tipo, no por graduación:** el catálogo tiene, por ejemplo, "Luna monofocal CR-39 antirreflejo". La graduación vive en la receta y en la orden de trabajo, y el taller talla la luna desde ese stock genérico. Los servicios (examen visual, montaje) son artículos con `controla_stock=False`.
+- **El stock se descuenta al registrar la venta**, no al entregar la orden de trabajo, y anular la venta lo repone.
+- **Ajustes por conteo físico:** se permiten ajustes de entrada y de salida, siempre con un motivo, además de las bajas (rotura, pérdida, vencimiento).
+- **Traspasos en dos pasos:** la sucursal de origen lo envía (sale de su stock) y la de destino lo recibe (entra al suyo). Mientras está enviado, la mercadería no está disponible en ninguna de las dos.
 - **Entrega con saldo:** una orden de trabajo no puede marcarse como entregada si la venta tiene saldo pendiente, salvo que el gerente lo autorice. La autorización registra quién la dio y cuándo. Las ventas de lentes graduados exigen un anticipo mínimo, configurable como porcentaje.
 - **Horario partido:** un horario laboral admite varios tramos por día (por ejemplo, 8:30–12:30 y 14:30–19:30). El atraso se calcula en la entrada de cada tramo y las horas trabajadas suman todos los tramos.
 - **Faltas:** RR.HH. registra permisos y vacaciones por empleado y mantiene un calendario de feriados. Esos días no cuentan como falta.

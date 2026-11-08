@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Artículos · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-upc-scan"></i>Artículos y stock</h1>
+    <p>Catálogo de armazones, lunas, lentes de contacto, accesorios y servicios.</p>
+  </div>
+  {% if perms.inventario.gestionar_catalogo %}<a class="btn btn-primary" href="{% url 'articulo_crear' %}"><i class="bi bi-plus-lg me-1"></i>Nuevo artículo</a>{% endif %}
+</div>
+<div class="card mb-3">
+  <div class="card-body">
+    <form class="row g-2" hx-get="{% url 'articulo_lista' %}" hx-target="#tabla-articulos" hx-indicator="#buscando"
+          hx-trigger="input changed delay:300ms from:input[name=q], change from:select" hx-push-url="true">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+          <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Código, código de barras, nombre o marca" aria-label="Buscar" autofocus>
+          <span class="input-group-text bg-white htmx-indicator" id="buscando"><span class="spinner-border spinner-border-sm text-info"></span></span>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <select name="categoria" class="form-select" aria-label="Filtrar por categoría">
+          <option value="">Todas las categorías</option>
+          {% for c in categorias %}<option value="{{ c.pk }}" {% if categoria == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <select name="estado" class="form-select" aria-label="Filtrar por estado">
+          <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activos</option>
+          <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivos</option>
+          <option value="todos" {% if estado == 'todos' %}selected{% endif %}>Todos</option>
+        </select>
+      </div>
+      <noscript><div class="col-12"><button class="btn btn-secondary">Filtrar</button></div></noscript>
+    </form>
+  </div>
+</div>
+<div id="tabla-articulos">{% include 'inventario/articulos/_tabla.html' %}</div>
+{% endblock %}
+{% block extra_head %}<style>.htmx-indicator{display:none}.htmx-request .htmx-indicator,.htmx-request.htmx-indicator{display:flex}</style>{% endblock %}

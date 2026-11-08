@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ articulo.codigo }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'articulo_lista' %}">Artículos</a></li>
+  <li class="breadcrumb-item active">{{ articulo.codigo }}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-box-seam"></i>{{ articulo.nombre }}
+      {% if articulo.activo %}<span class="oc-estado oc-estado-ok fs-6">Activo</span>{% else %}<span class="oc-estado oc-estado-inactivo fs-6">Inactivo</span>{% endif %}
+    </h1>
+    <p>{{ articulo.codigo }} · {{ articulo.categoria }}</p>
+  </div>
+  {% if perms.inventario.gestionar_catalogo %}<a class="btn btn-outline-primary" href="{% url 'articulo_editar' articulo.pk %}"><i class="bi bi-pencil me-1"></i>Editar</a>{% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-5 text-muted fw-medium">Código de barras</dt><dd class="col-sm-7">{{ articulo.codigo_barras|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted fw-medium">Marca</dt><dd class="col-sm-7">{{ articulo.marca|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted fw-medium">Proveedor habitual</dt><dd class="col-sm-7">{{ articulo.proveedor|default:"—" }}</dd>
+          <dt class="col-sm-5 text-muted fw-medium">Precio de venta</dt><dd class="col-sm-7 fw-semibold text-primary">Bs {{ articulo.precio_venta }}</dd>
+          {% if articulo.controla_stock %}
+          <dt class="col-sm-5 text-muted fw-medium">Costo promedio</dt><dd class="col-sm-7">Bs {{ articulo.costo_promedio|floatformat:2 }}</dd>
+          <dt class="col-sm-5 text-muted fw-medium">Stock mínimo</dt><dd class="col-sm-7 mb-0">{{ articulo.stock_minimo }} por sucursal</dd>
+          {% else %}
+          <dt class="col-sm-5 text-muted fw-medium">Stock</dt><dd class="col-sm-7 mb-0">No controla stock (servicio)</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+  {% if articulo.controla_stock %}
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-shop me-1 text-info"></i>Existencias por sucursal</div>
+      <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Sucursal</th><th class="text-end">Cantidad</th><th>Estado</th></tr></thead>
+        <tbody>
+        {% for sucursal, cantidad in existencias %}
+          <tr>
+            <td>{{ sucursal }}</td>
+            <td class="text-end fw-medium">{{ cantidad }}</td>
+            <td>{% if cantidad == 0 %}<span class="oc-estado oc-estado-peligro">Sin stock</span>{% elif cantidad <= articulo.stock_minimo %}<span class="oc-estado oc-estado-aviso">Stock bajo</span>{% else %}<span class="oc-estado oc-estado-ok">Disponible</span>{% endif %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot><tr><th>Total</th><th class="text-end">{{ stock_total }}</th><th></th></tr></tfoot>
+      </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

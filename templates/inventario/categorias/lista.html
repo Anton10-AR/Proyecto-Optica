@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Categorías · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-tags"></i>Categorías</h1>
+    <p>Agrupan los artículos del catálogo.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'categoria_crear' %}"><i class="bi bi-plus-lg me-1"></i>Nueva categoría</a>
+</div>
+<div class="card">
+<div class="table-responsive">
+<table class="table align-middle">
+  <thead><tr><th>Nombre</th><th>Descripción</th><th class="text-end">Artículos</th><th>Estado</th><th></th></tr></thead>
+  <tbody>
+  {% for c in object_list %}
+    <tr>
+      <td class="fw-medium"><a href="{% url 'articulo_lista' %}?categoria={{ c.pk }}&estado=todos">{{ c.nombre }}</a></td>
+      <td>{{ c.descripcion|default:"—" }}</td>
+      <td class="text-end">{{ c.cantidad }}</td>
+      <td>{% if c.activa %}<span class="oc-estado oc-estado-ok">Activa</span>{% else %}<span class="oc-estado oc-estado-inactivo">Inactiva</span>{% endif %}</td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'categoria_editar' c.pk %}"><i class="bi bi-pencil me-1"></i>Editar</a></td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5" class="text-center text-muted py-5">No hay categorías registradas.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% endblock %}

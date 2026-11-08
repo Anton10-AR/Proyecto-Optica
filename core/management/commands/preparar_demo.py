@@ -9,14 +9,16 @@ from django.db import transaction
 from asistencia.models import Marcacion
 from caja.models import MovimientoCaja, SesionCaja
 from core.models import RegistroActividad, Sucursal, Usuario
+from inventario.models import Articulo, Categoria, Existencia, Proveedor
 from ventas.models import Pago, Venta
 
-from .cargar_datos_prueba import CLAVE_PRUEBA, SUCURSALES, USUARIOS
+from .cargar_datos_prueba import ARTICULOS, CATEGORIAS, CLAVE_PRUEBA, PROVEEDORES, SUCURSALES, USUARIOS
 
 
 class Command(BaseCommand):
     help = ('Deja la base en el estado inicial de la demostración: borra las operaciones (ventas, cajas, '
-            'marcaciones, auditoría y sesiones) y los usuarios creados en ensayos, y recarga los datos de prueba. '
+            'marcaciones, existencias, auditoría y sesiones), el catálogo y los usuarios creados en ensayos, '
+            'y recarga los datos de prueba. '
             'Los superusuarios se conservan.')
 
     def add_arguments(self, parser):
@@ -26,7 +28,7 @@ class Command(BaseCommand):
         if not settings.DEBUG:
             raise CommandError('Por seguridad, solo se ejecuta con DJANGO_DEBUG=True (entorno de desarrollo o demostración).')
         if not options['si']:
-            respuesta = input('Se borrarán TODAS las ventas, cajas, marcaciones, la auditoría y los usuarios de ensayo '
+            respuesta = input('Se borrarán TODAS las ventas, cajas, marcaciones, existencias y la auditoría, y el catálogo y los usuarios de ensayo '
                               f'de la base "{settings.DATABASES["default"]["NAME"]}". ¿Continuar? [si/no]: ')
             if respuesta.strip().lower() not in ('si', 'sí', 's'):
                 self.stdout.write('Cancelado.')
@@ -41,7 +43,10 @@ class Command(BaseCommand):
                 'marcaciones': Marcacion.objects.all().delete()[0],
                 'registros de auditoría': RegistroActividad.objects.all().delete()[0],
                 'sesiones abiertas': Session.objects.all().delete()[0],
+                'existencias': Existencia.objects.all().delete()[0],
             }
+            # El catálogo creado en ensayos se borra; el de prueba se restaura con cargar_datos_prueba.
+            borrados['artículos de ensayo'] = Articulo.objects.exclude(codigo__in=[a[0] for a in ARTICULOS]).delete()[0]
             de_prueba = [u[0] for u in USUARIOS]
             ensayo = Usuario.objects.filter(is_superuser=False).exclude(username__in=de_prueba)
             borrados['usuarios de ensayo'] = len([u.delete() for u in ensayo])
@@ -49,6 +54,10 @@ class Command(BaseCommand):
             borrados['sucursales de ensayo'] = Sucursal.objects.exclude(nombre__in=sucursales).filter(
                 usuarios__isnull=True).delete()[0]
             call_command('cargar_datos_prueba', stdout=StringIO())
+            # Después de restaurar el catálogo, ningún artículo de prueba apunta ya a estos registros de ensayo.
+            borrados['proveedores de ensayo'] = Proveedor.objects.exclude(
+                razon_social__in=[p[0] for p in PROVEEDORES]).delete()[0]
+            borrados['categorías de ensayo'] = Categoria.objects.exclude(nombre__in=[c[0] for c in CATEGORIAS]).delete()[0]
 
         for nombre, cantidad in borrados.items():
             if cantidad:

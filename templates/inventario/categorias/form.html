@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Categoría · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-8">
+    <nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'categoria_lista' %}">Categorías</a></li>
+      <li class="breadcrumb-item active">{% if object %}{{ object }}{% else %}Nueva{% endif %}</li>
+    </ol></nav>
+    <div class="oc-encabezado">
+      <div><h1><i class="bi bi-tags"></i>{% if object %}Editar categoría{% else %}Nueva categoría{% endif %}</h1></div>
+    </div>
+    <form method="post" novalidate class="card card-body p-4">
+      {% csrf_token %}
+      {% include '_campos.html' %}
+      <div class="d-flex gap-2 border-top pt-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Guardar</button>
+        <a class="btn btn-outline-secondary" href="{% url 'categoria_lista' %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

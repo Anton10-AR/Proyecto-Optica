@@ -1,0 +1,25 @@
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+  <thead><tr><th>Código</th><th>Artículo</th><th>Categoría</th><th class="text-end">Precio</th><th class="text-end">Stock total</th><th>Estado</th></tr></thead>
+  <tbody>
+  {% for a in pagina %}
+    <tr>
+      <td class="text-nowrap"><a class="fw-medium" href="{% url 'articulo_detalle' a.pk %}">{{ a.codigo }}</a></td>
+      <td>
+        <div class="fw-medium">{{ a.nombre }}</div>
+        {% if a.marca %}<div class="small text-muted">{{ a.marca }}</div>{% endif %}
+      </td>
+      <td>{{ a.categoria }}</td>
+      <td class="text-end text-nowrap">Bs {{ a.precio_venta }}</td>
+      <td class="text-end">{% if a.controla_stock %}{{ a.stock_total }}{% else %}<span class="text-muted small">Servicio</span>{% endif %}</td>
+      <td>{% if a.activo %}<span class="oc-estado oc-estado-ok">Activo</span>{% else %}<span class="oc-estado oc-estado-inactivo">Inactivo</span>{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-search d-block fs-3 mb-2"></i>No se encontraron artículos con esos criterios.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% include 'inventario/_paginacion.html' with singular='artículo' plural='artículos' %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Proveedores · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-truck"></i>Proveedores</h1>
+    <p>Empresas a las que la óptica compra mercadería.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'proveedor_crear' %}"><i class="bi bi-plus-lg me-1"></i>Nuevo proveedor</a>
+</div>
+<div class="card mb-3">
+  <div class="card-body">
+    <form hx-get="{% url 'proveedor_lista' %}" hx-target="#tabla-proveedores" hx-indicator="#buscando"
+          hx-trigger="input changed delay:300ms from:input[name=q]" hx-push-url="true">
+      <div class="input-group">
+        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+        <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Buscar por razón social, NIT o contacto" aria-label="Buscar">
+        <span class="input-group-text bg-white htmx-indicator" id="buscando"><span class="spinner-border spinner-border-sm text-info"></span></span>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="tabla-proveedores">{% include 'inventario/proveedores/_tabla.html' %}</div>
+{% endblock %}
+{% block extra_head %}<style>.htmx-indicator{display:none}.htmx-request .htmx-indicator,.htmx-request.htmx-indicator{display:flex}</style>{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Artículo · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-8">
+    <nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'articulo_lista' %}">Artículos</a></li>
+      {% if object %}<li class="breadcrumb-item"><a href="{% url 'articulo_detalle' object.pk %}">{{ object.codigo }}</a></li>{% endif %}
+      <li class="breadcrumb-item active">{% if object %}Editar{% else %}Nuevo{% endif %}</li>
+    </ol></nav>
+    <div class="oc-encabezado">
+      <div>
+        <h1><i class="bi bi-box-seam"></i>{% if object %}Editar artículo{% else %}Nuevo artículo{% endif %}</h1>
+        <p>Las lunas se registran por tipo (material, diseño y tratamiento), no por graduación.</p>
+      </div>
+    </div>
+    <form method="post" novalidate class="card card-body p-4">
+      {% csrf_token %}
+      {% include '_campos.html' with columnas=2 %}
+      <div class="d-flex gap-2 border-top pt-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Guardar</button>
+        <a class="btn btn-outline-secondary" href="{% if object %}{% url 'articulo_detalle' object.pk %}{% else %}{% url 'articulo_lista' %}{% endif %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

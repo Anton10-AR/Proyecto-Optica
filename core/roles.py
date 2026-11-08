@@ -29,6 +29,11 @@ PERMISOS = {
         'core.add_sucursal': 'Crear sucursales',
         'core.change_sucursal': 'Editar sucursales',
     },
+    'Inventario': {
+        'inventario.ver_articulos': 'Consultar artículos, precios y stock por sucursal',
+        'inventario.gestionar_catalogo': 'Crear y editar artículos y categorías',
+        'inventario.gestionar_proveedores': 'Ver, crear y editar proveedores',
+    },
     'Caja': {
         'caja.operar_caja': 'Abrir su caja, registrar movimientos y cerrarla con arqueo',
         'caja.ver_todas_cajas': 'Ver las cajas de todos los usuarios',
@@ -50,12 +55,14 @@ ROLES = {
         'core.view_usuario',
         'core.view_registroactividad',
         'core.view_sucursal',
+        'inventario.ver_articulos',
         'caja.ver_todas_cajas',
         'ventas.ver_todas_ventas',
         'asistencia.marcar_asistencia',
         'asistencia.ver_todas_marcaciones',
     ],
     CAJERO_VENDEDOR: [
+        'inventario.ver_articulos',
         'caja.operar_caja',
         'ventas.registrar_venta',
         'asistencia.marcar_asistencia',
@@ -67,9 +74,13 @@ ROLES = {
         'asistencia.ver_todas_marcaciones',
     ],
     ALMACEN: [
+        'inventario.ver_articulos',
+        'inventario.gestionar_catalogo',
+        'inventario.gestionar_proveedores',
         'asistencia.marcar_asistencia',
     ],
     OPTICO: [
+        'inventario.ver_articulos',
         'asistencia.marcar_asistencia',
     ],
     EMPLEADO: [

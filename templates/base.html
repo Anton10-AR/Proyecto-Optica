@@ -38,6 +38,16 @@
           </ul>
         </li>
         {% endif %}
+        {% if perms.inventario.ver_articulos or perms.inventario.gestionar_proveedores %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if '/inventario/' in request.path %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-box-seam me-1"></i>Inventario</a>
+          <ul class="dropdown-menu">
+            {% if perms.inventario.ver_articulos %}<li><a class="dropdown-item" href="{% url 'articulo_lista' %}"><i class="bi bi-upc-scan"></i>Artículos y stock</a></li>{% endif %}
+            {% if perms.inventario.gestionar_catalogo %}<li><a class="dropdown-item" href="{% url 'categoria_lista' %}"><i class="bi bi-tags"></i>Categorías</a></li>{% endif %}
+            {% if perms.inventario.gestionar_proveedores %}<li><a class="dropdown-item" href="{% url 'proveedor_lista' %}"><i class="bi bi-truck"></i>Proveedores</a></li>{% endif %}
+          </ul>
+        </li>
+        {% endif %}
         {% if perms.caja.operar_caja or perms.caja.ver_todas_cajas %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if '/caja/' in request.path %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-cash-coin me-1"></i>Caja</a>

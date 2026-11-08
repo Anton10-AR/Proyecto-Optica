@@ -221,8 +221,10 @@ class PantallasTests(TestCase):
 
     def test_todas_las_pantallas_responden(self):
         from caja.models import SesionCaja
+        from inventario.models import Articulo, Categoria, Proveedor
         from ventas.models import Venta
         venta, sesion = Venta.objects.get(), SesionCaja.objects.get()
+        articulo, categoria, proveedor = Articulo.objects.first(), Categoria.objects.first(), Proveedor.objects.first()
         otro = Usuario.objects.get(username='empleado1')
         urls = [
             reverse('inicio'), reverse('password_change'),
@@ -233,6 +235,10 @@ class PantallasTests(TestCase):
             reverse('mi_caja'), reverse('caja_todas'), reverse('caja_detalle', args=[sesion.pk]),
             reverse('venta_lista'), reverse('venta_detalle', args=[venta.pk]), reverse('venta_nota', args=[venta.pk]),
             reverse('asistencia_marcar'), reverse('asistencia_mi_historial'), reverse('asistencia_todas'),
+            reverse('articulo_lista'), reverse('articulo_crear'), reverse('articulo_detalle', args=[articulo.pk]),
+            reverse('articulo_editar', args=[articulo.pk]), reverse('categoria_lista'), reverse('categoria_crear'),
+            reverse('categoria_editar', args=[categoria.pk]), reverse('proveedor_lista'), reverse('proveedor_crear'),
+            reverse('proveedor_editar', args=[proveedor.pk]),
         ]
         self.client.force_login(Usuario.objects.get(username='administrador'))
         for url in urls:
@@ -249,10 +255,18 @@ class PrepararDemoTests(TestCase):
         from django.test import override_settings
 
         from caja.models import SesionCaja
+        from inventario.models import Articulo, Categoria, Proveedor
         from ventas.models import Venta
 
         call_command('cargar_datos_prueba', stdout=StringIO())
         root = Usuario.objects.create_superuser('root', 'root@test.bo', CLAVE)
+        # Un artículo de prueba modificado para apuntar a una categoría y un proveedor de ensayo.
+        articulo = Articulo.objects.get(codigo='ARM-001')
+        articulo.categoria = Categoria.objects.create(nombre='Ensayo')
+        articulo.proveedor = Proveedor.objects.create(razon_social='Proveedor de ensayo')
+        articulo.precio_venta = Decimal('1')
+        articulo.save()
+        Articulo.objects.create(codigo='ENS-1', nombre='Ensayo', categoria=articulo.categoria, precio_venta=1)
         ensayo = crear_usuario('ensayo', roles.EMPLEADO, Sucursal.objects.first(), ci='7777777')
         RegistroActividad.objects.create(accion='CREACION_USUARIO', usuario=root, usuario_afectado=ensayo)
         cajero = Usuario.objects.get(username='cajero1')
@@ -272,3 +286,8 @@ class PrepararDemoTests(TestCase):
         # Queda el escenario de ejemplo: una caja cerrada con una venta con saldo.
         self.assertEqual(SesionCaja.objects.count(), 1)
         self.assertEqual(Venta.objects.get().saldo, Decimal('300'))
+        # El catálogo vuelve al de prueba.
+        self.assertFalse(Articulo.objects.filter(codigo='ENS-1').exists())
+        self.assertFalse(Categoria.objects.filter(nombre='Ensayo').exists())
+        self.assertFalse(Proveedor.objects.filter(razon_social='Proveedor de ensayo').exists())
+        self.assertEqual(Articulo.objects.get(codigo='ARM-001').precio_venta, Decimal('350'))

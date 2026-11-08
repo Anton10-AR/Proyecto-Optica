@@ -10,6 +10,7 @@ from asistencia.models import Marcacion
 from caja.models import FormaPago, MovimientoCaja, SesionCaja
 from core import roles
 from core.models import Sucursal, Usuario
+from inventario.models import Articulo, Categoria, Proveedor
 from ventas.models import Pago, Venta
 
 CLAVE_PRUEBA = 'Casimiro2026!'
@@ -34,6 +35,33 @@ USUARIOS = [
     ('empleado1', 'Luis', 'Fernández Cruz', '1000008', '70000008', roles.EMPLEADO, 0, True),
     ('empleado2', 'Ana', 'Mendoza Arce', '1000009', '70000009', roles.EMPLEADO, 1, True),
     ('exempleado', 'Jorge', 'Salazar Ríos', '1000010', '70000010', roles.EMPLEADO, 0, False),
+]
+
+CATEGORIAS = [
+    ('Armazones', 'Monturas de metal, acetato y al aire'),
+    ('Lunas', 'Por tipo de material, diseño y tratamiento; la graduación va en la receta'),
+    ('Lentes de contacto', ''),
+    ('Accesorios', 'Estuches, paños, líquidos y cordones'),
+    ('Servicios', 'Examen visual y trabajos de taller; no controlan stock'),
+]
+
+# razón social, NIT, contacto, teléfono
+PROVEEDORES = [
+    ('Distribuidora Óptica Andina SRL', '1023456019', 'Carla Méndez', '72800001'),
+    ('Lunas y Lentes Bolivia SA', '2034567018', 'Marco Céspedes', '72800002'),
+]
+
+# código, código de barras, nombre, categoría, marca, índice de proveedor, precio, stock mínimo, controla stock
+ARTICULOS = [
+    ('ARM-001', '7790000000011', 'Armazón metálico rectangular', 'Armazones', 'Vision Pro', 0, '350.00', 2, True),
+    ('ARM-002', '7790000000028', 'Armazón de acetato redondo', 'Armazones', 'Urban', 0, '280.00', 2, True),
+    ('LUN-001', None, 'Luna monofocal CR-39 antirreflejo', 'Lunas', '', 1, '180.00', 6, True),
+    ('LUN-002', None, 'Luna progresiva policarbonato fotocromática', 'Lunas', '', 1, '650.00', 4, True),
+    ('LCO-001', '7790000000035', 'Lentes de contacto mensuales (caja de 6)', 'Lentes de contacto', 'AquaSoft', 1, '220.00', 3, True),
+    ('ACC-001', '7790000000042', 'Estuche rígido con paño', 'Accesorios', '', 0, '35.00', 10, True),
+    ('ACC-002', '7790000000059', 'Líquido limpiador 60 ml', 'Accesorios', '', 0, '25.00', 10, True),
+    ('SRV-001', None, 'Examen visual computarizado', 'Servicios', '', None, '50.00', 0, False),
+    ('SRV-002', None, 'Montaje de lunas en armazón propio', 'Servicios', '', None, '40.00', 0, False),
 ]
 
 
@@ -61,12 +89,30 @@ class Command(BaseCommand):
             usuario.save()
             usuarios[username] = usuario
 
+        self._catalogo()
         self._operaciones_de_ejemplo(usuarios)
 
         self.stdout.write(self.style.SUCCESS(
             f'Datos de prueba cargados. Usuarios: {", ".join(usuarios)}. Contraseña de todos: {CLAVE_PRUEBA}'
         ))
         self.stdout.write('La cuenta "exempleado" está desactivada para demostrar la baja lógica.')
+
+    def _catalogo(self):
+        categorias = {}
+        for nombre, descripcion in CATEGORIAS:
+            categorias[nombre], _ = Categoria.objects.update_or_create(
+                nombre=nombre, defaults={'descripcion': descripcion, 'activa': True})
+        proveedores = [
+            Proveedor.objects.update_or_create(razon_social=razon, defaults={
+                'nit': nit, 'contacto': contacto, 'telefono': telefono, 'activo': True})[0]
+            for razon, nit, contacto, telefono in PROVEEDORES
+        ]
+        for codigo, barras, nombre, categoria, marca, proveedor, precio, minimo, controla in ARTICULOS:
+            Articulo.objects.update_or_create(codigo=codigo, defaults={
+                'codigo_barras': barras, 'nombre': nombre, 'categoria': categorias[categoria], 'marca': marca,
+                'proveedor': proveedores[proveedor] if proveedor is not None else None,
+                'precio_venta': Decimal(precio), 'stock_minimo': minimo, 'controla_stock': controla, 'activo': True,
+            })
 
     def _operaciones_de_ejemplo(self, usuarios):
         """Una caja cerrada con una venta y marcaciones de ayer, para que los historiales no estén vacíos."""
