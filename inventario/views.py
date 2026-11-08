@@ -1,3 +1,5 @@
+import csv
+from decimal import Decimal
 from functools import wraps
 from urllib.parse import urlencode
 
@@ -7,15 +9,17 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, ListView, UpdateView
 
 from core.models import Sucursal
 from core.views import PermisoMixin
 
-from . import servicios
+from . import reportes, servicios
 from .forms import (
     AjusteForm, ArticuloForm, CategoriaForm, IngresoForm, LineasIngresoFormSet, LineasTraspasoFormSet, ProveedorForm,
     TraspasoForm,
@@ -301,3 +305,86 @@ def kardex(request, pk):
                 'filtros': urlencode({'sucursal': sucursal.pk if sucursal else ''}),
                 'en_transito': servicios.unidades_en_transito(articulo)}
     return render(request, 'inventario/kardex.html', contexto)
+
+
+# ---------- Alertas y reportes ----------
+
+def _sucursal_elegida(request, por_defecto=None):
+    """Sucursal activa del parámetro ?sucursal=; con "todas" o sin parámetro válido, la de por defecto."""
+    valor = request.GET.get('sucursal')
+    if valor is None:
+        return por_defecto
+    return Sucursal.objects.filter(activa=True, pk=valor).first() if valor.isdigit() else None
+
+
+def _categoria_elegida(request):
+    valor = request.GET.get('categoria', '')
+    return Categoria.objects.filter(pk=valor).first() if valor.isdigit() else None
+
+
+def _numero(valor):
+    """Número con coma decimal, como lo espera Excel en español."""
+    return str(valor).replace('.', ',')
+
+
+def _csv(nombre, encabezados, filas):
+    respuesta = HttpResponse(content_type='text/csv; charset=utf-8')
+    respuesta['Content-Disposition'] = f'attachment; filename="{nombre}.csv"'
+    respuesta.write('﻿')  # BOM: Excel abre el archivo como UTF-8 y muestra bien las tildes.
+    escritor = csv.writer(respuesta, delimiter=';')
+    escritor.writerow(encabezados)
+    escritor.writerows(filas)
+    return respuesta
+
+
+@login_required
+@permission_required('inventario.ver_articulos', raise_exception=True)
+def alertas_stock(request):
+    """Artículos que llegaron a su stock mínimo (RF12)."""
+    propia = None if reportes.ve_todas_las_sucursales(request.user) else request.user.sucursal
+    sucursal = _sucursal_elegida(request, por_defecto=propia)
+    alertas = reportes.alertas_stock([sucursal] if sucursal else None)
+    return render(request, 'inventario/reportes/alertas.html', {
+        'alertas': alertas, 'sucursal': sucursal, 'sucursales': Sucursal.objects.filter(activa=True),
+        'agotados': sum(1 for a in alertas if a['agotado']),
+    })
+
+
+@login_required
+@permission_required('inventario.ver_articulos', raise_exception=True)
+def reporte_existencias(request):
+    """Existencias por sucursal y consolidadas (RF14)."""
+    categoria = _categoria_elegida(request)
+    datos = reportes.reporte_existencias(categoria)
+    if request.GET.get('formato') == 'csv':
+        encabezados = ['Código', 'Artículo', 'Categoría', 'Stock mínimo'] + [s.nombre for s in datos['sucursales']]             + ['En tránsito', 'Total']
+        filas = [[f['articulo'].codigo, f['articulo'].nombre, f['articulo'].categoria.nombre, f['articulo'].stock_minimo]
+                 + [c['cantidad'] for c in f['celdas']] + [f['en_transito'], f['total']] for f in datos['filas']]
+        filas.append(['', 'Total', '', ''] + datos['totales'] + [datos['total_transito'], datos['total']])
+        return _csv(f'existencias_{timezone.localdate():%Y-%m-%d}', encabezados, filas)
+    return render(request, 'inventario/reportes/existencias.html', {
+        **datos, 'categoria': categoria, 'categorias': Categoria.objects.order_by('nombre'), 'hoy': timezone.localtime(),
+        'filtros': urlencode({'categoria': categoria.pk if categoria else ''}),
+    })
+
+
+@login_required
+@permission_required('inventario.ver_kardex', raise_exception=True)
+def reporte_valorado(request):
+    """Inventario valorado al costo promedio, por sucursal o consolidado (RF14)."""
+    sucursal = _sucursal_elegida(request)
+    categoria = _categoria_elegida(request)
+    datos = reportes.reporte_valorado(sucursal, categoria)
+    if request.GET.get('formato') == 'csv':
+        filas = [[f['articulo'].codigo, f['articulo'].nombre, g['categoria'].nombre, f['unidades'],
+                  _numero(f['costo'].quantize(Decimal('0.01'))), _numero(f['valor'])]
+                 for g in datos['grupos'] for f in g['filas']]
+        filas.append(['', 'Total', '', datos['unidades'], '', _numero(datos['valor'])])
+        alcance = sucursal.nombre if sucursal else 'consolidado'
+        return _csv(f'inventario_valorado_{alcance}_{timezone.localdate():%Y-%m-%d}'.replace(' ', '_'),
+                    ['Código', 'Artículo', 'Categoría', 'Unidades', 'Costo promedio (Bs)', 'Valor (Bs)'], filas)
+    return render(request, 'inventario/reportes/valorado.html', {
+        **datos, 'sucursal': sucursal, 'categoria': categoria, 'hoy': timezone.localtime(),
+        'sucursales': Sucursal.objects.filter(activa=True), 'categorias': Categoria.objects.order_by('nombre'),
+        'filtros': urlencode({'sucursal': sucursal.pk if sucursal else '', 'categoria': categoria.pk if categoria else ''}),
+    })

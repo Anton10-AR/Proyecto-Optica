@@ -73,6 +73,20 @@
     </a>
   </div>
   {% endif %}
+  {% if alertas_stock %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'alertas_stock' %}?sucursal={% if alertas_stock.sucursal %}{{ alertas_stock.sucursal.pk }}{% else %}todas{% endif %}">
+      <div class="oc-indicador">
+        <span class="oc-icono" {% if alertas_stock.agotados %}style="background: var(--bs-danger-bg-subtle); color: var(--oc-peligro)"{% elif alertas_stock.cantidad %}style="background: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis)"{% endif %}><i class="bi bi-exclamation-triangle"></i></span>
+        <div>
+          <div class="oc-etiqueta">Stock mínimo</div>
+          <div class="oc-valor">{% if alertas_stock.cantidad %}{{ alertas_stock.cantidad }} alerta{{ alertas_stock.cantidad|pluralize }}{% else %}Sin alertas{% endif %}</div>
+          <div class="small text-muted">{% if alertas_stock.agotados %}{{ alertas_stock.agotados }} agotado{{ alertas_stock.agotados|pluralize }}{% elif alertas_stock.cantidad %}por reponer{% else %}stock en orden{% endif %}{% if alertas_stock.sucursal %} · {{ alertas_stock.sucursal.nombre }}{% endif %}</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
   {% if personal %}
   <div class="col-sm-6 col-xl-3">
     <a class="card card-body h-100 oc-acceso" href="{% url 'asistencia_todas' %}">

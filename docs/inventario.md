@@ -4,7 +4,7 @@
 
 Este documento acompaña al código fuente del módulo de inventario (app `inventario`). Reúne la guía de demostración, el diagrama entidad-relación, los permisos del módulo, las reglas de negocio y la correspondencia con los requisitos del documento de visión.
 
-**Estado:** están implementados el catálogo, las existencias por sucursal, los ingresos por compra, las bajas y los ajustes, los traspasos, el kardex valorado y la integración con Ventas (la venta descuenta stock y su anulación lo repone). Faltan las alertas de stock mínimo y los reportes de inventario valorado.
+**Estado:** están implementados el catálogo, las existencias por sucursal, los ingresos por compra, las bajas y los ajustes, los traspasos, el kardex valorado la integración con Ventas (la venta descuenta stock y su anulación lo repone), las alertas de stock mínimo y los reportes de existencias e inventario valorado. El módulo cubre RF08–RF14.
 
 ## 1. Cómo ejecutar la demostración
 
@@ -42,6 +42,8 @@ Todos los usuarios tienen la contraseña **`Casimiro2026!`**.
 7. Como `cajero1`, abra su caja y registre una venta (*Ventas → Nueva venta*) con un armazón, una luna y el examen visual. El total se calcula en vivo y el examen no descuenta stock. En el kardex del armazón aparece la *Salida por venta*.
 8. Intente vender más unidades de las que hay: el sistema responde "Stock insuficiente…" y no registra ni la venta ni el pago.
 9. Como `gerente`, abra su caja con un monto inicial, entre a la venta y pulse **Anular**. El stock vuelve a Centro (*Reposición por venta anulada* en el kardex) y lo pagado sale de la caja del gerente como egreso.
+10. En el inicio, `almacen` ve el indicador *Stock mínimo* con las alertas de todas las sucursales, y `cajero2` solo las de Norte. *Inventario → Alertas de stock* indica en qué otra sucursal hay unidades del artículo (para un traspaso) o si hay que comprarlo.
+11. *Inventario → Reporte de existencias* muestra las unidades por sucursal, en tránsito y en total, con las que están en su mínimo resaltadas. Como `gerente` o `almacen`, *Inventario valorado* muestra el valor por sucursal o consolidado, con subtotales por categoría. Los dos reportes se exportan a CSV (se abre en Excel) y se pueden imprimir.
 
 ## 2. Diagrama entidad-relación
 
@@ -234,7 +236,10 @@ Extracto de la matriz que genera `manage.py matriz_permisos` a partir de `core/r
 - **Consistencia (RNF05):** cada operación se ejecuta en una sola transacción. Bloquea los artículos con `SELECT … FOR UPDATE` en orden de clave para evitar bloqueos mutuos, actualiza la existencia y crea la línea del kardex. Si una línea falla (por ejemplo, por stock insuficiente), no se aplica ninguna.
 - **Validaciones:** un documento no puede repetir el mismo artículo ni incluir servicios, y las cantidades deben ser mayores que cero. Un ingreso además rechaza los artículos y proveedores inactivos. Un artículo inactivo sí puede darse de baja o traspasarse, para sacar el stock que le quede.
 
-Toda esta lógica está en `inventario/servicios.py` (`registrar_ingreso`, `registrar_ajuste`, `enviar_traspaso`, `recibir_traspaso`, `registrar_salida_venta` y `reponer_venta`), no en las vistas. `ventas/servicios.py` (`registrar_venta` y `anular_venta`) llama a las dos últimas dentro de su propia transacción, junto con el cobro o la devolución en caja.
+- **Alertas de stock mínimo:** un artículo está en alerta en una sucursal cuando su stock es igual o menor que su mínimo. Una sucursal sin fila de existencia cuenta como stock 0. No generan alertas los artículos inactivos, los servicios ni los que tienen mínimo 0. Quien tiene `ver_kardex` o `enviar_traspasos` ve las alertas de todas las sucursales; el resto, las de su sucursal (puede elegir otra en la pantalla de alertas).
+- **Inventario valorado:** valor = unidades × costo promedio del artículo. El reporte de una sucursal cuenta solo su stock; el consolidado suma todas las sucursales más las unidades en tránsito, porque siguen siendo de la empresa.
+
+Toda esta lógica está en `inventario/servicios.py` (`registrar_ingreso`, `registrar_ajuste`, `enviar_traspaso`, `recibir_traspaso`, `registrar_salida_venta` y `reponer_venta`), no en las vistas. `ventas/servicios.py` (`registrar_venta` y `anular_venta`) llama a las dos últimas dentro de su propia transacción, junto con el cobro o la devolución en caja. Las consultas de las alertas y los reportes están en `inventario/reportes.py`, que también usa el panel de inicio.
 
 ## 5. Cumplimiento de los requisitos
 
@@ -244,9 +249,9 @@ Toda esta lógica está en `inventario/servicios.py` (`registrar_ingreso`, `regi
 | RF09 Ingresos por compra | Hecho | *Ingresos por compra*: proveedor, factura y varias líneas con cantidad y costo |
 | RF10 Salidas por ventas, bajas o traspasos | Hecho | Ventas con líneas de artículos, bajas, ajustes y traspasos en dos pasos. La anulación de una venta repone el stock |
 | RF11 Kardex valorado por costo promedio ponderado | Hecho | Kardex por artículo y sucursal, con saldo, costo promedio y valor |
-| RF12 Alertas de stock mínimo | Pendiente | Fase 4 |
+| RF12 Alertas de stock mínimo | Hecho | Indicador en el inicio, pantalla de alertas por sucursal con stock disponible en otras sucursales, y marca en el detalle del artículo y en el reporte de existencias |
 | RF13 Gestión de proveedores | Hecho | CRUD de proveedores con baja lógica |
-| RF14 Reportes de existencias e inventario valorado | Pendiente | Fase 4 |
+| RF14 Reportes de existencias e inventario valorado | Hecho | Existencias por sucursal, en tránsito y consolidadas. Inventario valorado por sucursal o consolidado, con subtotales por categoría. Ambos con filtro por categoría, exportación a CSV e impresión |
 | RNF05 Consistencia del stock | Hecho | La venta, el descuento de stock, el kardex y el pago se registran en una sola transacción con bloqueo de filas. Igual en ingresos, ajustes, traspasos y anulaciones |
 
 ## 6. Scripts SQL y pruebas
@@ -259,4 +264,4 @@ Los scripts de [`sql/`](sql/) incluyen las tablas y los datos de prueba de inven
 
 Los tests de `ventas/tests.py` cubren el descuento de stock y el kardex de la venta, la reversión completa si falta stock, el descuento y las validaciones del total, y la anulación: reposición al costo de la venta, devolución por forma de pago, motivo obligatorio, caja abierta y permisos.
 
-Los tests de `inventario/tests.py` cubren el catálogo y sus validaciones, el cálculo del costo promedio (incluidas las unidades en tránsito), la reversión completa ante stock insuficiente, el traspaso en dos pasos, los ajustes, el rechazo de servicios y artículos inactivos, los formularios con varias líneas y los permisos de cada pantalla.
+Los tests de `inventario/tests.py` cubren el catálogo y sus validaciones, el cálculo del costo promedio (incluidas las unidades en tránsito), la reversión completa ante stock insuficiente, el traspaso en dos pasos, los ajustes, el rechazo de servicios y artículos inactivos, los formularios con varias líneas y los permisos de cada pantalla. También cubren las alertas (incluidos los casos que no deben generarlas), su alcance por sucursal en el inicio, y los números y la exportación a CSV de los dos reportes.

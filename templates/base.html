@@ -46,6 +46,12 @@
             {% if perms.inventario.registrar_ingresos or perms.inventario.ver_kardex %}<li><a class="dropdown-item" href="{% url 'ingreso_lista' %}"><i class="bi bi-box-arrow-in-down"></i>Ingresos por compra</a></li>{% endif %}
             {% if perms.inventario.registrar_ajustes or perms.inventario.ver_kardex %}<li><a class="dropdown-item" href="{% url 'ajuste_lista' %}"><i class="bi bi-clipboard2-minus"></i>Bajas y ajustes</a></li>{% endif %}
             {% if perms.inventario.enviar_traspasos or perms.inventario.recibir_traspasos or perms.inventario.ver_kardex %}<li><a class="dropdown-item" href="{% url 'traspaso_lista' %}"><i class="bi bi-arrow-left-right"></i>Traspasos</a></li>{% endif %}
+            {% if perms.inventario.ver_articulos %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'alertas_stock' %}"><i class="bi bi-exclamation-triangle"></i>Alertas de stock</a></li>
+            <li><a class="dropdown-item" href="{% url 'reporte_existencias' %}"><i class="bi bi-grid-3x3"></i>Reporte de existencias</a></li>
+            {% if perms.inventario.ver_kardex %}<li><a class="dropdown-item" href="{% url 'reporte_valorado' %}"><i class="bi bi-calculator"></i>Inventario valorado</a></li>{% endif %}
+            {% endif %}
             {% if perms.inventario.gestionar_catalogo or perms.inventario.gestionar_proveedores %}<li><hr class="dropdown-divider"></li>{% endif %}
             {% if perms.inventario.gestionar_catalogo %}<li><a class="dropdown-item" href="{% url 'categoria_lista' %}"><i class="bi bi-tags"></i>Categorías</a></li>{% endif %}
             {% if perms.inventario.gestionar_proveedores %}<li><a class="dropdown-item" href="{% url 'proveedor_lista' %}"><i class="bi bi-truck"></i>Proveedores</a></li>{% endif %}

@@ -23,4 +23,7 @@ urlpatterns = [
     path('traspasos/nuevo/', views.traspaso_crear, name='traspaso_crear'),
     path('traspasos/<int:pk>/', views.traspaso_detalle, name='traspaso_detalle'),
     path('traspasos/<int:pk>/recibir/', views.traspaso_recibir, name='traspaso_recibir'),
+    path('alertas/', views.alertas_stock, name='alertas_stock'),
+    path('reportes/existencias/', views.reporte_existencias, name='reporte_existencias'),
+    path('reportes/valorado/', views.reporte_valorado, name='reporte_valorado'),
 ]

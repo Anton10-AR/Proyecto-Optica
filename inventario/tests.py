@@ -249,3 +249,92 @@ class MovimientosTests(BaseTest):
         pagina = self.client.get(url, {'sucursal': self.sucursal.pk}).context['pagina']
         self.assertEqual([(m.tipo, m.saldo) for m in pagina], [('COMPRA', 5), ('TRASPASO_SALIDA', 3)])
         self.assertEqual(len(self.client.get(url, {'sucursal': self.norte.pk}).context['pagina']), 0)
+
+
+class ReportesTests(BaseTest):
+    """Alertas de stock mínimo (RF12) y reportes de existencias e inventario valorado (RF14)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.norte = Sucursal.objects.create(nombre='Norte', direccion='Calle 2', latitud=0, longitud=0)
+        cls.almacen = crear_usuario('almacen', roles.ALMACEN, cls.sucursal, ci='4444444')
+        cls.gerente = crear_usuario('gerente', roles.GERENTE, cls.sucursal, ci='6666666')
+        cls.cajero_norte = crear_usuario('cajeronorte', roles.CAJERO_VENDEDOR, cls.norte, ci='5555555')
+        armazones = Categoria.objects.create(nombre='Armazones')
+        accesorios = Categoria.objects.create(nombre='Accesorios')
+        cls.accesorios = accesorios
+        proveedor = Proveedor.objects.create(razon_social='Andina')
+        cls.armazon = Articulo.objects.create(codigo='ARM-1', nombre='Armazón', categoria=armazones,
+                                              precio_venta=300, stock_minimo=2)
+        cls.estuche = Articulo.objects.create(codigo='ACC-1', nombre='Estuche', categoria=accesorios,
+                                              precio_venta=30, stock_minimo=5)
+        cls.sin_minimo = Articulo.objects.create(codigo='ACC-2', nombre='Paño', categoria=accesorios, precio_venta=5)
+        Articulo.objects.create(codigo='SRV-1', nombre='Examen', categoria=accesorios, precio_venta=50,
+                                controla_stock=False, stock_minimo=3)
+        # Centro: 10 armazones a 100 y 5 estuches a 12. Norte: 2 armazones (en el mínimo) y 1 en tránsito.
+        servicios.registrar_ingreso(cls.almacen, cls.sucursal, proveedor, [
+            (cls.armazon, 10, Decimal('100')), (cls.estuche, 5, Decimal('12'))])
+        recibido = servicios.enviar_traspaso(cls.almacen, cls.sucursal, cls.norte, [(cls.armazon, 2)])
+        servicios.recibir_traspaso(recibido, cls.cajero_norte)
+        servicios.enviar_traspaso(cls.almacen, cls.sucursal, cls.norte, [(cls.armazon, 1)])
+
+    def test_alertas_por_sucursal(self):
+        from inventario import reportes
+        alertas = {(a['sucursal'].nombre, a['articulo'].codigo): a for a in reportes.alertas_stock()}
+        # Centro: 7 armazones (sobre el mínimo) y 5 estuches (justo en el mínimo).
+        # Norte: 2 armazones (en el mínimo) y ningún estuche (agotado, sin fila de existencia).
+        # El paño (mínimo 0) y el examen (servicio) no generan alertas.
+        self.assertEqual(set(alertas), {('Centro', 'ACC-1'), ('Norte', 'ARM-1'), ('Norte', 'ACC-1')})
+        self.assertTrue(alertas[('Norte', 'ACC-1')]['agotado'])
+        self.assertEqual(alertas[('Norte', 'ACC-1')]['otras'], [(self.sucursal, 5)])
+        self.assertEqual(len(reportes.alertas_stock([self.norte])), 2)
+        self.estuche.activo = False
+        self.estuche.save()
+        self.assertEqual(len(reportes.alertas_stock()), 1)
+
+    def test_panel_e_inicio_muestran_las_alertas_segun_el_alcance(self):
+        self.client.force_login(self.almacen)
+        self.assertEqual(self.client.get(reverse('inicio')).context['alertas_stock']['cantidad'], 3)
+        self.assertEqual(len(self.client.get(reverse('alertas_stock')).context['alertas']), 3)
+        # El cajero ve las de su sucursal, pero puede elegir otra.
+        self.client.force_login(self.cajero_norte)
+        panel = self.client.get(reverse('inicio')).context['alertas_stock']
+        self.assertEqual((panel['cantidad'], panel['agotados'], panel['sucursal']), (2, 1, self.norte))
+        self.assertEqual(len(self.client.get(reverse('alertas_stock')).context['alertas']), 2)
+        self.assertEqual(len(self.client.get(reverse('alertas_stock'), {'sucursal': 'todas'}).context['alertas']), 3)
+        self.client.force_login(self.empleado)
+        self.assertNotIn('alertas_stock', self.client.get(reverse('inicio')).context)
+        self.assertEqual(self.client.get(reverse('alertas_stock')).status_code, 403)
+
+    def test_reporte_de_existencias_y_csv(self):
+        self.client.force_login(self.cajero_norte)
+        datos = self.client.get(reverse('reporte_existencias')).context
+        filas = {f['articulo'].codigo: f for f in datos['filas']}
+        self.assertEqual([c['cantidad'] for c in filas['ARM-1']['celdas']], [7, 2])
+        self.assertEqual((filas['ARM-1']['en_transito'], filas['ARM-1']['total']), (1, 10))
+        self.assertEqual([c['bajo_minimo'] for c in filas['ACC-1']['celdas']], [True, True])
+        self.assertNotIn('SRV-1', filas)
+        self.assertEqual((datos['totales'], datos['total']), ([12, 2], 15))
+        respuesta = self.client.get(reverse('reporte_existencias'), {'formato': 'csv', 'categoria': self.accesorios.pk})
+        self.assertEqual(respuesta['Content-Type'], 'text/csv; charset=utf-8')
+        lineas = respuesta.content.decode('utf-8-sig').splitlines()
+        self.assertEqual(lineas[0], 'Código;Artículo;Categoría;Stock mínimo;Centro;Norte;En tránsito;Total')
+        self.assertIn('ACC-1;Estuche;Accesorios;5;5;0;0;5', lineas)
+        self.assertNotIn('ARM-1', respuesta.content.decode('utf-8-sig'))
+
+    def test_inventario_valorado_por_sucursal_y_consolidado(self):
+        self.client.force_login(self.gerente)
+        url = reverse('reporte_valorado')
+        consolidado = self.client.get(url).context
+        # 10 armazones (7 + 2 + 1 en tránsito) × 100 + 5 estuches × 12 = 1060.
+        self.assertEqual((consolidado['unidades'], consolidado['valor']), (15, Decimal('1060.00')))
+        norte = self.client.get(url, {'sucursal': self.norte.pk}).context
+        self.assertEqual((norte['unidades'], norte['valor']), (2, Decimal('200.00')))
+        self.assertEqual([g['categoria'].nombre for g in norte['grupos']], ['Armazones'])
+        csv = self.client.get(url, {'formato': 'csv'}).content.decode('utf-8-sig').splitlines()
+        self.assertIn('ARM-1;Armazón;Armazones;10;100,00;1000,00', csv)
+        self.assertEqual(csv[-1], ';Total;;15;;1060,00')
+        # Los costos no son para el cajero.
+        self.client.force_login(self.cajero_norte)
+        self.assertEqual(self.client.get(url).status_code, 403)

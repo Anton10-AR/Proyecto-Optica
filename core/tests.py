@@ -244,6 +244,8 @@ class PantallasTests(TestCase):
             reverse('ingreso_lista'), reverse('ingreso_crear'), reverse('ingreso_detalle', args=[ingreso.pk]),
             reverse('ajuste_lista'), reverse('ajuste_crear'),
             reverse('traspaso_lista'), reverse('traspaso_crear'), reverse('traspaso_detalle', args=[traspaso.pk]),
+            reverse('alertas_stock'), reverse('reporte_existencias'), reverse('reporte_valorado'),
+            reverse('reporte_existencias') + '?formato=csv', reverse('reporte_valorado') + '?formato=csv',
         ]
         self.client.force_login(Usuario.objects.get(username='administrador'))
         for url in urls:

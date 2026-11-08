@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Reporte de existencias · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-grid-3x3"></i>Reporte de existencias</h1>
+    <p>Unidades por sucursal y en toda la empresa, al {{ hoy|date:"d/m/Y H:i" }}.</p>
+  </div>
+  <div class="d-flex gap-2 d-print-none">
+    <a class="btn btn-outline-primary" href="?{{ filtros }}&formato=csv"><i class="bi bi-filetype-csv me-1"></i>Exportar CSV</a>
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir</button>
+  </div>
+</div>
+<form method="get" class="card card-body mb-3 d-print-none">
+  <div class="row g-2">
+    <div class="col-md-4">
+      <select name="categoria" class="form-select" aria-label="Categoría" onchange="this.form.submit()">
+        <option value="">Todas las categorías</option>
+        {% for c in categorias %}<option value="{{ c.pk }}" {% if c == categoria %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+      </select>
+    </div>
+    <noscript><div class="col-auto"><button class="btn btn-secondary">Ver</button></div></noscript>
+  </div>
+</form>
+{% if categoria %}<p class="d-none d-print-block">Categoría: {{ categoria }}</p>{% endif %}
+<div class="card">
+<div class="table-responsive">
+<table class="table table-sm table-hover align-middle mb-0">
+  <thead>
+    <tr><th>Artículo</th><th>Categoría</th><th class="text-end">Mínimo</th>
+      {% for s in sucursales %}<th class="text-end border-start">{{ s.nombre }}</th>{% endfor %}
+      <th class="text-end border-start">En tránsito</th><th class="text-end border-start">Total</th></tr>
+  </thead>
+  <tbody>
+  {% for f in filas %}
+    <tr>
+      <td><a href="{% url 'articulo_detalle' f.articulo.pk %}">{{ f.articulo.codigo }}</a> · {{ f.articulo.nombre }}</td>
+      <td class="small text-muted">{{ f.articulo.categoria }}</td>
+      <td class="text-end text-muted">{{ f.articulo.stock_minimo }}</td>
+      {% for c in f.celdas %}
+      <td class="text-end border-start">{% if c.bajo_minimo %}<span class="oc-estado {% if c.cantidad %}oc-estado-aviso{% else %}oc-estado-peligro{% endif %}" title="En su stock mínimo o por debajo">{{ c.cantidad }}</span>{% else %}{{ c.cantidad }}{% endif %}</td>
+      {% endfor %}
+      <td class="text-end border-start text-muted">{{ f.en_transito|default:"" }}</td>
+      <td class="text-end border-start fw-semibold">{{ f.total }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="{{ sucursales|length|add:5 }}" class="text-center text-muted py-5">No hay artículos que controlen stock{% if categoria %} en {{ categoria }}{% endif %}.</td></tr>
+  {% endfor %}
+  </tbody>
+  {% if filas %}
+  <tfoot>
+    <tr><th colspan="3" class="text-end">Total</th>
+      {% for t in totales %}<th class="text-end border-start">{{ t }}</th>{% endfor %}
+      <th class="text-end border-start">{{ total_transito|default:"" }}</th><th class="text-end border-start">{{ total }}</th></tr>
+  </tfoot>
+  {% endif %}
+</table>
+</div>
+</div>
+<p class="small text-muted mt-2 mb-0">Artículos activos que controlan stock. Las cantidades resaltadas están en su stock mínimo o por debajo. «En tránsito» son las unidades enviadas en traspasos que aún no se recibieron.</p>
+{% endblock %}

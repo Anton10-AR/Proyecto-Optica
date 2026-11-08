@@ -52,7 +52,7 @@ Es un monolito modular: un proyecto Django (`config/`) con una app por módulo d
 | App | Módulo | Requisitos |
 |---|---|---|
 | `core` | Usuarios, roles, sucursales, auditoría y elementos compartidos | RF16, RF29, RF30, RF36, RNF03 |
-| `inventario` | Catálogo (categorías, proveedores, artículos), existencias por sucursal, ingresos por compra, bajas y ajustes, traspasos en dos pasos y kardex. Faltan las alertas y los reportes | RF08–RF14 |
+| `inventario` | Catálogo (categorías, proveedores, artículos), existencias por sucursal, ingresos por compra, bajas y ajustes, traspasos en dos pasos, kardex, alertas de stock mínimo y reportes de existencias e inventario valorado (`inventario/reportes.py`) | RF08–RF14 |
 | `caja` | Apertura, movimientos y cierre de caja con arqueo | RF33–RF35 |
 | `ventas` | Ventas, pagos, nota de venta, recetas, órdenes de trabajo y reportes | RF01–RF07, RF21–RF25, RF31–RF32 |
 | `asistencia` | Marcaciones, horarios, tolerancia, permisos, feriados y reportes | RF15, RF17–RF20, RF26–RF28 |

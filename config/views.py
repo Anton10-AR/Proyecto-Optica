@@ -10,6 +10,7 @@ from asistencia.models import Marcacion
 from asistencia.servicios import proximo_tipo
 from caja.servicios import caja_abierta
 from core.models import RegistroActividad
+from inventario import reportes as inventario
 from ventas.models import Venta
 
 
@@ -35,6 +36,15 @@ def inicio(request):
     if usuario.has_perm('ventas.ver_todas_ventas'):
         todas = Venta.objects.filter(fecha__date=hoy, estado=Venta.Estado.VIGENTE)
         contexto['ventas_hoy'] = todas.aggregate(cantidad=Count('id'), total=Sum('total'))
+
+    if usuario.has_perm('inventario.ver_articulos'):
+        todas = inventario.ve_todas_las_sucursales(usuario)
+        if todas or usuario.sucursal:
+            alertas = inventario.alertas_stock(None if todas else [usuario.sucursal])
+            contexto['alertas_stock'] = {
+                'cantidad': len(alertas), 'agotados': sum(1 for a in alertas if a['agotado']),
+                'sucursal': None if todas else usuario.sucursal,
+            }
 
     if usuario.has_perm('asistencia.ver_todas_marcaciones'):
         activos = get_user_model().objects.filter(is_active=True, sucursal__isnull=False)

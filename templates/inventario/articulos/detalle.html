@@ -48,7 +48,7 @@
         {% for sucursal, cantidad in existencias %}
           <tr>
             <td>{% if perms.inventario.ver_kardex %}<a href="{% url 'kardex' articulo.pk %}?sucursal={{ sucursal.pk }}" title="Ver kardex">{{ sucursal }}</a>{% else %}{{ sucursal }}{% endif %}</td>
-            <td class="text-end fw-medium">{{ cantidad }}</td>
+            <td class="text-end fw-medium">{% if articulo.controla_stock and articulo.stock_minimo and cantidad <= articulo.stock_minimo %}<span class="oc-estado {% if cantidad %}oc-estado-aviso{% else %}oc-estado-peligro{% endif %}" title="En su stock mínimo ({{ articulo.stock_minimo }}) o por debajo">{{ cantidad }}</span>{% else %}{{ cantidad }}{% endif %}</td>
             <td>{% if cantidad == 0 %}<span class="oc-estado oc-estado-peligro">Sin stock</span>{% elif cantidad <= articulo.stock_minimo %}<span class="oc-estado oc-estado-aviso">Stock bajo</span>{% else %}<span class="oc-estado oc-estado-ok">Disponible</span>{% endif %}</td>
           </tr>
         {% endfor %}
