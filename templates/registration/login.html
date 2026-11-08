@@ -48,7 +48,7 @@
           <input type="hidden" name="next" value="{{ next }}">
           <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-1"></i>Ingresar</button>
         </form>
-        <p class="small text-muted text-center mt-4 mb-0"><i class="bi bi-shield-lock me-1"></i>La sesión se cierra tras {{ minutos_inactividad }} minutos de inactividad.</p>
+        <p class="small text-muted text-center mt-4 mb-0"><i class="bi bi-shield-lock me-1"></i>La sesión se cierra tras {{ minutos_inactividad }} minuto{{ minutos_inactividad|pluralize }} de inactividad.</p>
       </div>
     </div>
   </section>
