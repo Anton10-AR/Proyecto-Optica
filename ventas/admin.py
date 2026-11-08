@@ -1,6 +1,18 @@
 from django.contrib import admin
 
-from .models import Pago, Venta
+from inventario.admin import SoloLecturaMixin
+
+from .models import DetalleVenta, Pago, Venta
+
+
+class DetalleVentaInline(admin.TabularInline):
+    model = DetalleVenta
+    extra = 0
+    can_delete = False
+    readonly_fields = ('articulo', 'cantidad', 'precio_unitario', 'costo_unitario')
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class PagoInline(admin.TabularInline):
@@ -11,7 +23,9 @@ class PagoInline(admin.TabularInline):
 
 
 @admin.register(Venta)
-class VentaAdmin(admin.ModelAdmin):
+class VentaAdmin(SoloLecturaMixin, admin.ModelAdmin):
+    """Solo lectura: registrar, cobrar y anular pasan por ventas.servicios para mover stock y caja."""
+
     list_display = ('numero', 'fecha', 'vendedor', 'sucursal', 'cliente_nombre', 'total', 'estado')
     list_filter = ('estado', 'sucursal')
-    inlines = [PagoInline]
+    inlines = [DetalleVentaInline, PagoInline]

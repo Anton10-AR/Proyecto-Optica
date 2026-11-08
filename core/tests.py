@@ -235,6 +235,7 @@ class PantallasTests(TestCase):
             reverse('sucursal_editar', args=[otro.sucursal_id]),
             reverse('mi_caja'), reverse('caja_todas'), reverse('caja_detalle', args=[sesion.pk]),
             reverse('venta_lista'), reverse('venta_detalle', args=[venta.pk]), reverse('venta_nota', args=[venta.pk]),
+            reverse('venta_anular', args=[venta.pk]),
             reverse('asistencia_marcar'), reverse('asistencia_mi_historial'), reverse('asistencia_todas'),
             reverse('articulo_lista'), reverse('articulo_crear'), reverse('articulo_detalle', args=[articulo.pk]),
             reverse('articulo_editar', args=[articulo.pk]), reverse('categoria_lista'), reverse('categoria_crear'),
@@ -300,5 +301,7 @@ class PrepararDemoTests(TestCase):
         arm = Articulo.objects.get(codigo='ARM-001')
         self.assertEqual(arm.costo_promedio, Decimal('157.5'))
         self.assertEqual(sorted(Existencia.objects.filter(articulo=arm).values_list('sucursal__nombre', 'cantidad')),
-                         [('Sucursal Centro', 12), ('Sucursal Norte', 4)])
+                         [('Sucursal Centro', 11), ('Sucursal Norte', 4)])  # 12 en Centro, menos 1 vendido
         self.assertEqual(Traspaso.objects.filter(estado=Traspaso.Estado.ENVIADO).count(), 1)
+        venta = Venta.objects.get()
+        self.assertEqual((venta.subtotal, venta.descuento, venta.detalles.count()), (Decimal('710'), Decimal('60'), 2))

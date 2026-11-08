@@ -28,6 +28,7 @@
       <div class="fw-semibold text-primary">NOTA DE VENTA</div>
       <div class="fs-5">N.º {{ venta.numero }}</div>
       <div class="small text-muted">Documento no fiscal</div>
+      {% if venta.estado == 'ANULADA' %}<div class="fw-bold text-danger">ANULADA</div>{% endif %}
     </div>
   </div>
   <div class="row mb-4 small">
@@ -43,14 +44,26 @@
     </div>
   </div>
   <table class="table">
-    <thead><tr><th>Descripción</th><th class="text-end">Importe</th></tr></thead>
-    <tbody><tr><td>{{ venta.descripcion }}</td><td class="text-end">Bs {{ venta.total }}</td></tr></tbody>
+    {% if detalles %}
+    <thead><tr><th>Descripción</th><th class="text-end">Cant.</th><th class="text-end">Precio</th><th class="text-end">Importe</th></tr></thead>
+    <tbody>
+      {% for d in detalles %}<tr><td>{{ d.articulo.nombre }}</td><td class="text-end">{{ d.cantidad }}</td><td class="text-end">Bs {{ d.precio_unitario|floatformat:"2g" }}</td><td class="text-end">Bs {{ d.subtotal|floatformat:"2g" }}</td></tr>{% endfor %}
+    </tbody>
+    {% else %}
+    <thead><tr><th colspan="3">Descripción</th><th class="text-end">Importe</th></tr></thead>
+    <tbody><tr><td colspan="3">{{ venta.descripcion }}</td><td class="text-end">Bs {{ venta.total|floatformat:"2g" }}</td></tr></tbody>
+    {% endif %}
     <tfoot>
-      <tr><th class="text-end">Total</th><th class="text-end">Bs {{ venta.total }}</th></tr>
-      {% for p in pagos %}<tr><td class="text-end small text-muted">Pago {{ p.fecha|date:"d/m/Y" }} ({{ p.get_forma_pago_display }})</td><td class="text-end small">− Bs {{ p.monto }}</td></tr>{% endfor %}
-      <tr><th class="text-end">Saldo</th><th class="text-end">Bs {{ venta.saldo }}</th></tr>
+      {% if venta.descuento %}
+      <tr><td colspan="3" class="text-end">Subtotal</td><td class="text-end">Bs {{ venta.subtotal|floatformat:"2g" }}</td></tr>
+      <tr><td colspan="3" class="text-end">Descuento</td><td class="text-end">− Bs {{ venta.descuento|floatformat:"2g" }}</td></tr>
+      {% endif %}
+      <tr><th colspan="3" class="text-end">Total</th><th class="text-end">Bs {{ venta.total|floatformat:"2g" }}</th></tr>
+      {% for p in pagos %}<tr><td colspan="3" class="text-end small text-muted">Pago {{ p.fecha|date:"d/m/Y" }} ({{ p.get_forma_pago_display }})</td><td class="text-end small">− Bs {{ p.monto|floatformat:"2g" }}</td></tr>{% endfor %}
+      <tr><th colspan="3" class="text-end">Saldo</th><th class="text-end">Bs {{ venta.saldo|floatformat:"2g" }}</th></tr>
     </tfoot>
   </table>
+  {% if detalles and venta.descripcion %}<p class="small"><span class="text-muted">Observación:</span> {{ venta.descripcion }}</p>{% endif %}
   <p class="text-center small text-muted mt-5">Gracias por su preferencia · Cuidando cada detalle de tu visión</p>
   <div class="no-print d-flex gap-2 justify-content-center mt-4">
     <button class="btn btn-primary" onclick="window.print()">Imprimir</button>

@@ -1,6 +1,6 @@
 -- Ópticas Casimiro · Datos de prueba (seeds)
 -- Generado con pg_dump a partir de `manage.py cargar_datos_prueba` sobre una base recién migrada.
--- Incluye roles y permisos, sucursales, usuarios, una caja y una venta de ejemplo, marcaciones,
+-- Incluye roles y permisos, sucursales, usuarios, una caja y una venta de ejemplo con sus líneas, marcaciones,
 -- el catálogo de inventario y sus movimientos iniciales (compras, traspasos y una baja).
 -- Contraseña de todos los usuarios de prueba: Casimiro2026! (guardada con Argon2).
 -- Ejecutar después de 01_esquema.sql sobre una base vacía.
@@ -10,7 +10,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict wJqvelhafkTXrAnb99TwfIAxBcN7su4YudnetBzVNLR4mkDOfHnvO6GIkzgVgXb
+\restrict bbO2PU1eVmW83nNAL4oDJPFNgB5312FW2Fx3ZtJAcfGakxwyorcLWgiNaDVyca3
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -57,16 +57,16 @@ COPY public.core_sucursal (id, nombre, direccion, latitud, longitud, radio_metro
 --
 
 COPY public.core_usuario (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined, ci, debe_cambiar_clave, rol_id, telefono, sucursal_id) FROM stdin;
-1	argon2$argon2id$v=19$m=102400,t=2,p=8$S3UyMktWeE9MdG9Weko2MFQ3Q0ZKcQ$sMZdeDyRC8HxmRGojWNKNVWw3astbwXcrmsPH9HrZbc	\N	f	administrador	Sofía	Torrico Lima	administrador@opticascasimiro.test	f	t	2026-11-08 12:03:10.135438-04	1000001	f	1	70000001	1
-2	argon2$argon2id$v=19$m=102400,t=2,p=8$YUdtdnNDYjFqSU4xa2c3c3NOeXB1RA$KgND8JP1s/ROVizjOKysG94q4vbXsK6/1nTnG4AvxRk	\N	f	gerente	Daniel	Ortiz Paredes	gerente@opticascasimiro.test	f	t	2026-11-08 12:03:10.304804-04	1000002	f	2	70000002	1
-3	argon2$argon2id$v=19$m=102400,t=2,p=8$WWlMSVVyVGZKZXFWelU0VFI0Vk1IVA$PcvN+RUknsxTLn5VDsvZaQRcbYwO4OLAwubPQOeLIng	\N	f	cajero1	Juan	Pérez Mamani	cajero1@opticascasimiro.test	f	t	2026-11-08 12:03:10.357678-04	1000003	f	3	70000003	1
-4	argon2$argon2id$v=19$m=102400,t=2,p=8$aHlxczVyR2I0T2JUTkhUWjM1bDdKOQ$BAZMbV2ByB6k4iI+J6y0ZZleremhMyTxcQ6PO8aYO3c	\N	f	cajero2	Lucía	Quispe Vargas	cajero2@opticascasimiro.test	f	t	2026-11-08 12:03:10.408161-04	1000004	f	3	70000004	2
-5	argon2$argon2id$v=19$m=102400,t=2,p=8$STdGckl6c2NrdXhCM2d3M29wcnhwMQ$vF6kv1kXqIJBJl79wx0D6dF3GDNTBEBQxNo+0EUsTMg	\N	f	rrhh	Valeria	Ramos Soliz	rrhh@opticascasimiro.test	f	t	2026-11-08 12:03:10.460835-04	1000005	f	4	70000005	1
-6	argon2$argon2id$v=19$m=102400,t=2,p=8$MGRsSkpwUlNpZ2tDNldDZm5Pb3FwUw$fOwlOvANcN6yeANuxqtwiEqLEsSRcStoPQB1+IPX3OM	\N	f	almacen	Pedro	Rojas Torrez	almacen@opticascasimiro.test	f	t	2026-11-08 12:03:10.510733-04	1000006	f	5	70000006	1
-7	argon2$argon2id$v=19$m=102400,t=2,p=8$N0pRQUdITTZjZm94YmJQNmtRM3ZMQQ$vbwdIcrSifqqGRIZoow4/bfvcjLxJYpilXiHppKVy7Y	\N	f	optico	Marta	Gutiérrez Choque	optico@opticascasimiro.test	f	t	2026-11-08 12:03:10.56414-04	1000007	f	6	70000007	1
-8	argon2$argon2id$v=19$m=102400,t=2,p=8$RXprWGh5dE9pdlZlWDNtZ0tIMnV3Rw$IwBKtjtt+182Jy39tjzpzZxPFkKCNflieVKpf/ULveo	\N	f	empleado1	Luis	Fernández Cruz	empleado1@opticascasimiro.test	f	t	2026-11-08 12:03:10.612001-04	1000008	f	7	70000008	1
-9	argon2$argon2id$v=19$m=102400,t=2,p=8$MzJ0NlVXc0FORzVaZk1SMzNESllXWg$UTNhoQ2eA+4pFNqzulQF4Jd3EjV0SGxOiILUrRYaJuI	\N	f	empleado2	Ana	Mendoza Arce	empleado2@opticascasimiro.test	f	t	2026-11-08 12:03:10.663736-04	1000009	f	7	70000009	2
-10	argon2$argon2id$v=19$m=102400,t=2,p=8$UmhCWHozOGlYQW02dGdmYWQ5V3VmQQ$QLl35rJ5UV4VH0jhAAQHnyW98e6f5ivZvhKwlXsxlxQ	\N	f	exempleado	Jorge	Salazar Ríos	exempleado@opticascasimiro.test	f	f	2026-11-08 12:03:10.721257-04	1000010	f	7	70000010	1
+1	argon2$argon2id$v=19$m=102400,t=2,p=8$VFhYdThVdTNxWDlKSm80eDhFY0RRbg$ii43yoOmzYwFP9zYgR1LyWZ9t2wbkiAaBt1K5WzAbcQ	\N	f	administrador	Sofía	Torrico Lima	administrador@opticascasimiro.test	f	t	2026-11-08 12:18:15.133885-04	1000001	f	1	70000001	1
+2	argon2$argon2id$v=19$m=102400,t=2,p=8$Nkh2Q3BjbEpYUUlxMDFNWkpkSlppUA$tQ9tgRIWW8FsdaaxqUwG89zM7Ao73LVQjeOKZ/Dvs38	\N	f	gerente	Daniel	Ortiz Paredes	gerente@opticascasimiro.test	f	t	2026-11-08 12:18:15.382631-04	1000002	f	2	70000002	1
+3	argon2$argon2id$v=19$m=102400,t=2,p=8$TkpoU2pHYms3Y3N1WWhvUUpwNktoUQ$Ny3bMrg/J+Mm9iRC6+meHfLoPGxjTD3kaU+e5efbhQc	\N	f	cajero1	Juan	Pérez Mamani	cajero1@opticascasimiro.test	f	t	2026-11-08 12:18:15.477563-04	1000003	f	3	70000003	1
+4	argon2$argon2id$v=19$m=102400,t=2,p=8$V2FzYjJHcmF1ek10TTFaZW1Tb2FWRQ$PpyPM9z13PRDg9P60ciWDQhSw6bhHCo3u8DfNrZRE9I	\N	f	cajero2	Lucía	Quispe Vargas	cajero2@opticascasimiro.test	f	t	2026-11-08 12:18:15.580887-04	1000004	f	3	70000004	2
+5	argon2$argon2id$v=19$m=102400,t=2,p=8$dDdyN0NIWVFHb1FnU1ZFQ1BjcjBXUw$jPSHqyt3CWqW0kmFhVqBo5yBBR7fBoNOg+qWOoSyzdk	\N	f	rrhh	Valeria	Ramos Soliz	rrhh@opticascasimiro.test	f	t	2026-11-08 12:18:15.697571-04	1000005	f	4	70000005	1
+6	argon2$argon2id$v=19$m=102400,t=2,p=8$TlRBMXhDS1k4RDFrQVVOS0o3cmN1cw$qr2geqouhk9H5Svf/SiRzB/ycF8OsrWt50VAczxy11s	\N	f	almacen	Pedro	Rojas Torrez	almacen@opticascasimiro.test	f	t	2026-11-08 12:18:15.801036-04	1000006	f	5	70000006	1
+7	argon2$argon2id$v=19$m=102400,t=2,p=8$UnZJM2pOTU51MWEwSkhWWUFNTHhHYQ$RQNx+EFZM81qhOTCOz1DwaQM+wkw0Mp/RaF6eko+cTk	\N	f	optico	Marta	Gutiérrez Choque	optico@opticascasimiro.test	f	t	2026-11-08 12:18:15.911762-04	1000007	f	6	70000007	1
+8	argon2$argon2id$v=19$m=102400,t=2,p=8$ZjltbTdSa25QZlZjT0ZtQ01LYjJuMA$qe2OLug0Tuwuok0xC4XXsi3P+CQhUC5rU2rvZ5f4dg8	\N	f	empleado1	Luis	Fernández Cruz	empleado1@opticascasimiro.test	f	t	2026-11-08 12:18:16.007838-04	1000008	f	7	70000008	1
+9	argon2$argon2id$v=19$m=102400,t=2,p=8$RjlDT3ZhYzR0Z0ZCUmZJNTdXU2pNZw$oGASIwa+nrSfCoQDU9aAg1A7u5S3cNYWqVq/x5H31NQ	\N	f	empleado2	Ana	Mendoza Arce	empleado2@opticascasimiro.test	f	t	2026-11-08 12:18:16.102222-04	1000009	f	7	70000009	2
+10	argon2$argon2id$v=19$m=102400,t=2,p=8$NFNTZjRzTzcxazdzcVFReUQ3OXQ2SA$Qt8kvVuMKpPMve5DSKPTRKJw6fcPES5O6YoJ9LKLfnY	\N	f	exempleado	Jorge	Salazar Ríos	exempleado@opticascasimiro.test	f	f	2026-11-08 12:18:16.198245-04	1000010	f	7	70000010	1
 \.
 
 
@@ -105,11 +105,12 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 16	inventario	movimiento
 17	inventario	proveedor
 18	inventario	traspaso
-19	ventas	pago
-20	ventas	venta
-21	caja	movimientocaja
-22	caja	sesioncaja
-23	asistencia	marcacion
+19	ventas	detalleventa
+20	ventas	pago
+21	ventas	venta
+22	caja	movimientocaja
+23	caja	sesioncaja
+24	asistencia	marcacion
 \.
 
 
@@ -198,32 +199,37 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 78	Can change línea de traspaso	13	change_detalletraspaso
 79	Can delete línea de traspaso	13	delete_detalletraspaso
 80	Can view línea de traspaso	13	view_detalletraspaso
-81	Can add venta	20	add_venta
-82	Can change venta	20	change_venta
-83	Can delete venta	20	delete_venta
-84	Can view venta	20	view_venta
-85	Puede registrar ventas y cobrar pagos	20	registrar_venta
-86	Puede ver las ventas de todos los vendedores	20	ver_todas_ventas
-87	Can add pago	19	add_pago
-88	Can change pago	19	change_pago
-89	Can delete pago	19	delete_pago
-90	Can view pago	19	view_pago
-91	Can add sesión de caja	22	add_sesioncaja
-92	Can change sesión de caja	22	change_sesioncaja
-93	Can delete sesión de caja	22	delete_sesioncaja
-94	Can view sesión de caja	22	view_sesioncaja
-95	Puede abrir su caja, registrar movimientos y cerrarla	22	operar_caja
-96	Puede ver las cajas de todos los usuarios	22	ver_todas_cajas
-97	Can add movimiento de caja	21	add_movimientocaja
-98	Can change movimiento de caja	21	change_movimientocaja
-99	Can delete movimiento de caja	21	delete_movimientocaja
-100	Can view movimiento de caja	21	view_movimientocaja
-101	Can add marcación	23	add_marcacion
-102	Can change marcación	23	change_marcacion
-103	Can delete marcación	23	delete_marcacion
-104	Can view marcación	23	view_marcacion
-105	Puede marcar su propia asistencia y ver su historial	23	marcar_asistencia
-106	Puede ver las marcaciones de todo el personal	23	ver_todas_marcaciones
+81	Can add venta	21	add_venta
+82	Can change venta	21	change_venta
+83	Can delete venta	21	delete_venta
+84	Can view venta	21	view_venta
+85	Puede registrar ventas y cobrar pagos	21	registrar_venta
+86	Puede ver las ventas de todos los vendedores	21	ver_todas_ventas
+87	Puede anular ventas	21	anular_venta
+88	Can add pago	20	add_pago
+89	Can change pago	20	change_pago
+90	Can delete pago	20	delete_pago
+91	Can view pago	20	view_pago
+92	Can add detalle de venta	19	add_detalleventa
+93	Can change detalle de venta	19	change_detalleventa
+94	Can delete detalle de venta	19	delete_detalleventa
+95	Can view detalle de venta	19	view_detalleventa
+96	Can add sesión de caja	23	add_sesioncaja
+97	Can change sesión de caja	23	change_sesioncaja
+98	Can delete sesión de caja	23	delete_sesioncaja
+99	Can view sesión de caja	23	view_sesioncaja
+100	Puede abrir su caja, registrar movimientos y cerrarla	23	operar_caja
+101	Puede ver las cajas de todos los usuarios	23	ver_todas_cajas
+102	Can add movimiento de caja	22	add_movimientocaja
+103	Can change movimiento de caja	22	change_movimientocaja
+104	Can delete movimiento de caja	22	delete_movimientocaja
+105	Can view movimiento de caja	22	view_movimientocaja
+106	Can add marcación	24	add_marcacion
+107	Can change marcación	24	change_marcacion
+108	Can delete marcación	24	delete_marcacion
+109	Can view marcación	24	view_marcacion
+110	Puede marcar su propia asistencia y ver su historial	24	marcar_asistencia
+111	Puede ver las marcaciones de todo el personal	24	ver_todas_marcaciones
 \.
 
 
@@ -249,40 +255,43 @@ COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
 15	1	72
 16	1	85
 17	1	86
-18	1	95
-19	1	96
-20	1	105
-21	1	106
-22	2	32
-23	2	96
-24	2	105
-25	2	106
+18	1	87
+19	1	100
+20	1	101
+21	1	110
+22	1	111
+23	2	32
+24	2	100
+25	2	101
 26	2	46
-27	2	48
-28	2	86
-29	2	24
-30	2	28
-31	3	72
-32	3	105
-33	3	46
-34	3	85
-35	3	95
-36	4	24
-37	4	105
-38	4	106
-39	4	28
-40	5	71
-41	5	72
-42	5	41
-43	5	105
-44	5	46
-45	5	47
-46	5	48
-47	5	57
-48	5	62
-49	6	105
-50	6	46
-51	7	105
+27	2	110
+28	2	48
+29	2	111
+30	2	86
+31	2	87
+32	2	24
+33	2	28
+34	3	100
+35	3	72
+36	3	110
+37	3	46
+38	3	85
+39	4	24
+40	4	28
+41	4	110
+42	4	111
+43	5	71
+44	5	72
+45	5	41
+46	5	46
+47	5	47
+48	5	48
+49	5	110
+50	5	57
+51	5	62
+52	6	110
+53	6	46
+54	7	110
 \.
 
 
@@ -375,7 +384,7 @@ COPY public.inventario_articulo (id, codigo, codigo_barras, nombre, marca, preci
 --
 
 COPY public.inventario_ajuste (id, fecha, tipo, cantidad, motivo, articulo_id, sucursal_id, usuario_id) FROM stdin;
-1	2026-11-08 12:03:10.908758-04	BAJA	1	Armazón con la bisagra rota al exhibirlo	2	1	6
+1	2026-11-08 12:18:16.533844-04	BAJA	1	Armazón con la bisagra rota al exhibirlo	2	1	6
 \.
 
 
@@ -384,9 +393,9 @@ COPY public.inventario_ajuste (id, fecha, tipo, cantidad, motivo, articulo_id, s
 --
 
 COPY public.inventario_ingreso (id, fecha, documento, observacion, proveedor_id, sucursal_id, usuario_id) FROM stdin;
-1	2026-11-08 12:03:10.81891-04	F-0001520		1	1	6
-2	2026-11-08 12:03:10.855589-04	F-0098211		2	1	6
-3	2026-11-08 12:03:10.875375-04	F-0001587		1	1	6
+1	2026-11-08 12:18:16.373794-04	F-0001520		1	1	6
+2	2026-11-08 12:18:16.440527-04	F-0098211		2	1	6
+3	2026-11-08 12:18:16.470521-04	F-0001587		1	1	6
 \.
 
 
@@ -411,8 +420,8 @@ COPY public.inventario_detalleingreso (id, cantidad, costo_unitario, articulo_id
 --
 
 COPY public.inventario_traspaso (id, estado, observacion, fecha_envio, fecha_recepcion, destino_id, origen_id, usuario_envio_id, usuario_recepcion_id) FROM stdin;
-1	RECIBIDO	Reposición semanal	2026-11-08 12:03:10.881121-04	2026-11-08 12:03:10.901037-04	2	1	6	4
-2	ENVIADO	Pedido de la sucursal	2026-11-08 12:03:10.902112-04	\N	2	1	6	\N
+1	RECIBIDO	Reposición semanal	2026-11-08 12:18:16.480611-04	2026-11-08 12:18:16.517282-04	2	1	6	4
+2	ENVIADO	Pedido de la sucursal	2026-11-08 12:18:16.519821-04	\N	2	1	6	\N
 \.
 
 
@@ -436,14 +445,14 @@ COPY public.inventario_detalletraspaso (id, cantidad, articulo_id, traspaso_id) 
 COPY public.inventario_existencia (id, cantidad, articulo_id, sucursal_id) FROM stdin;
 6	12	4	1
 7	15	5	1
-1	12	1	1
-5	28	3	1
 3	22	6	1
 8	4	1	2
 9	12	3	2
 10	8	6	2
 4	10	7	1
 2	4	2	1
+1	11	1	1
+5	26	3	1
 \.
 
 
@@ -452,23 +461,25 @@ COPY public.inventario_existencia (id, cantidad, articulo_id, sucursal_id) FROM 
 --
 
 COPY public.inventario_movimiento (id, fecha, tipo, cantidad, costo_unitario, saldo, costo_promedio, referencia, ajuste_id, articulo_id, ingreso_id, sucursal_id, usuario_id, traspaso_id) FROM stdin;
-1	2026-11-08 12:03:10.838976-04	COMPRA	10	150.0000	10	150.0000	Ingreso 000001	\N	1	1	1	6	\N
-2	2026-11-08 12:03:10.845074-04	COMPRA	8	110.0000	8	110.0000	Ingreso 000001	\N	2	1	1	6	\N
-3	2026-11-08 12:03:10.849952-04	COMPRA	30	12.0000	30	12.0000	Ingreso 000001	\N	6	1	1	6	\N
-4	2026-11-08 12:03:10.854708-04	COMPRA	12	9.0000	12	9.0000	Ingreso 000001	\N	7	1	1	6	\N
-5	2026-11-08 12:03:10.861121-04	COMPRA	40	60.0000	40	60.0000	Ingreso 000002	\N	3	2	1	6	\N
-6	2026-11-08 12:03:10.867575-04	COMPRA	12	260.0000	12	260.0000	Ingreso 000002	\N	4	2	1	6	\N
-7	2026-11-08 12:03:10.874486-04	COMPRA	15	120.0000	15	120.0000	Ingreso 000002	\N	5	2	1	6	\N
-8	2026-11-08 12:03:10.880188-04	COMPRA	6	170.0000	16	157.5000	Ingreso 000003	\N	1	3	1	6	\N
-9	2026-11-08 12:03:10.885276-04	TRASPASO_SALIDA	4	157.5000	12	157.5000	Traspaso 000001	\N	1	\N	1	6	1
-10	2026-11-08 12:03:10.887284-04	TRASPASO_SALIDA	12	60.0000	28	60.0000	Traspaso 000001	\N	3	\N	1	6	1
-11	2026-11-08 12:03:10.889409-04	TRASPASO_SALIDA	8	12.0000	22	12.0000	Traspaso 000001	\N	6	\N	1	6	1
-12	2026-11-08 12:03:10.896147-04	TRASPASO_ENTRADA	4	157.5000	4	157.5000	Traspaso 000001	\N	1	\N	2	4	1
-13	2026-11-08 12:03:10.898409-04	TRASPASO_ENTRADA	12	60.0000	12	60.0000	Traspaso 000001	\N	3	\N	2	4	1
-14	2026-11-08 12:03:10.900655-04	TRASPASO_ENTRADA	8	12.0000	8	12.0000	Traspaso 000001	\N	6	\N	2	4	1
-15	2026-11-08 12:03:10.904825-04	TRASPASO_SALIDA	3	110.0000	5	110.0000	Traspaso 000002	\N	2	\N	1	6	2
-16	2026-11-08 12:03:10.907105-04	TRASPASO_SALIDA	2	9.0000	10	9.0000	Traspaso 000002	\N	7	\N	1	6	2
-17	2026-11-08 12:03:10.913924-04	BAJA	1	110.0000	4	110.0000	Baja 000001	1	2	\N	1	6	\N
+1	2026-11-08 12:18:16.409132-04	COMPRA	10	150.0000	10	150.0000	Ingreso 000001	\N	1	1	1	6	\N
+2	2026-11-08 12:18:16.419817-04	COMPRA	8	110.0000	8	110.0000	Ingreso 000001	\N	2	1	1	6	\N
+3	2026-11-08 12:18:16.428252-04	COMPRA	30	12.0000	30	12.0000	Ingreso 000001	\N	6	1	1	6	\N
+4	2026-11-08 12:18:16.438514-04	COMPRA	12	9.0000	12	9.0000	Ingreso 000001	\N	7	1	1	6	\N
+5	2026-11-08 12:18:16.451932-04	COMPRA	40	60.0000	40	60.0000	Ingreso 000002	\N	3	2	1	6	\N
+6	2026-11-08 12:18:16.460321-04	COMPRA	12	260.0000	12	260.0000	Ingreso 000002	\N	4	2	1	6	\N
+7	2026-11-08 12:18:16.468906-04	COMPRA	15	120.0000	15	120.0000	Ingreso 000002	\N	5	2	1	6	\N
+8	2026-11-08 12:18:16.478865-04	COMPRA	6	170.0000	16	157.5000	Ingreso 000003	\N	1	3	1	6	\N
+9	2026-11-08 12:18:16.487775-04	TRASPASO_SALIDA	4	157.5000	12	157.5000	Traspaso 000001	\N	1	\N	1	6	1
+10	2026-11-08 12:18:16.491406-04	TRASPASO_SALIDA	12	60.0000	28	60.0000	Traspaso 000001	\N	3	\N	1	6	1
+11	2026-11-08 12:18:16.49477-04	TRASPASO_SALIDA	8	12.0000	22	12.0000	Traspaso 000001	\N	6	\N	1	6	1
+12	2026-11-08 12:18:16.507734-04	TRASPASO_ENTRADA	4	157.5000	4	157.5000	Traspaso 000001	\N	1	\N	2	4	1
+13	2026-11-08 12:18:16.512222-04	TRASPASO_ENTRADA	12	60.0000	12	60.0000	Traspaso 000001	\N	3	\N	2	4	1
+14	2026-11-08 12:18:16.516432-04	TRASPASO_ENTRADA	8	12.0000	8	12.0000	Traspaso 000001	\N	6	\N	2	4	1
+15	2026-11-08 12:18:16.526067-04	TRASPASO_SALIDA	3	110.0000	5	110.0000	Traspaso 000002	\N	2	\N	1	6	2
+16	2026-11-08 12:18:16.530965-04	TRASPASO_SALIDA	2	9.0000	10	9.0000	Traspaso 000002	\N	7	\N	1	6	2
+17	2026-11-08 12:18:16.542215-04	BAJA	1	110.0000	4	110.0000	Baja 000001	1	2	\N	1	6	\N
+18	2026-11-08 12:18:16.574342-04	VENTA	1	157.5000	11	157.5000	Nota de venta 000001	\N	1	\N	1	3	\N
+19	2026-11-08 12:18:16.577088-04	VENTA	2	60.0000	26	60.0000	Nota de venta 000001	\N	3	\N	1	3	\N
 \.
 
 
@@ -476,8 +487,18 @@ COPY public.inventario_movimiento (id, fecha, tipo, cantidad, costo_unitario, sa
 -- Data for Name: ventas_venta; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.ventas_venta (id, fecha, cliente_nombre, cliente_ci, descripcion, total, estado, sucursal_id, vendedor_id) FROM stdin;
-1	2026-11-07 10:15:00-04	Cliente de prueba	5555555	Armazón y lunas monofocales	650.00	VIGENTE	1	3
+COPY public.ventas_venta (id, fecha, cliente_nombre, cliente_ci, descripcion, total, estado, sucursal_id, vendedor_id, descuento, fecha_anulacion, motivo_anulacion, usuario_anulacion_id) FROM stdin;
+1	2026-11-07 10:15:00-04	Cliente de prueba	5555555		650.00	VIGENTE	1	3	60.00	\N		\N
+\.
+
+
+--
+-- Data for Name: ventas_detalleventa; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.ventas_detalleventa (id, cantidad, precio_unitario, costo_unitario, articulo_id, venta_id) FROM stdin;
+1	1	350.00	157.5000	1	1
+2	2	180.00	60.0000	3	1
 \.
 
 
@@ -508,14 +529,14 @@ SELECT pg_catalog.setval('public.auth_group_id_seq', 7, true);
 -- Name: auth_group_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 51, true);
+SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 54, true);
 
 
 --
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 106, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 111, true);
 
 
 --
@@ -578,14 +599,14 @@ SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, false);
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 23, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 24, true);
 
 
 --
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 27, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 28, true);
 
 
 --
@@ -641,7 +662,7 @@ SELECT pg_catalog.setval('public.inventario_ingreso_id_seq', 3, true);
 -- Name: inventario_movimiento_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.inventario_movimiento_id_seq', 17, true);
+SELECT pg_catalog.setval('public.inventario_movimiento_id_seq', 19, true);
 
 
 --
@@ -656,6 +677,13 @@ SELECT pg_catalog.setval('public.inventario_proveedor_id_seq', 2, true);
 --
 
 SELECT pg_catalog.setval('public.inventario_traspaso_id_seq', 2, true);
+
+
+--
+-- Name: ventas_detalleventa_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.ventas_detalleventa_id_seq', 2, true);
 
 
 --
@@ -676,5 +704,5 @@ SELECT pg_catalog.setval('public.ventas_venta_id_seq', 1, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict wJqvelhafkTXrAnb99TwfIAxBcN7su4YudnetBzVNLR4mkDOfHnvO6GIkzgVgXb
+\unrestrict bbO2PU1eVmW83nNAL4oDJPFNgB5312FW2Fx3ZtJAcfGakxwyorcLWgiNaDVyca3
 

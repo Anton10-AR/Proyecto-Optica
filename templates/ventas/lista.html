@@ -21,7 +21,7 @@
       <td>{{ v.vendedor }}</td>
       <td>{{ v.sucursal }}</td>
       <td class="text-end">Bs {{ v.total }}</td>
-      <td class="text-end">{% with s=v.saldo %}{% if s > 0 %}<span class="oc-estado oc-estado-aviso">Bs {{ s }}</span>{% else %}<span class="oc-estado oc-estado-ok">Pagado</span>{% endif %}{% endwith %}</td>
+      <td class="text-end">{% with s=v.saldo %}{% if v.estado == 'ANULADA' %}<span class="oc-estado oc-estado-inactivo">Anulada</span>{% elif s > 0 %}<span class="oc-estado oc-estado-aviso">Bs {{ s }}</span>{% else %}<span class="oc-estado oc-estado-ok">Pagado</span>{% endif %}{% endwith %}</td>
       <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'venta_detalle' v.pk %}"><i class="bi bi-eye"></i><span class="visually-hidden">Ver</span></a></td>
     </tr>
   {% empty %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Anular venta {{ venta.numero }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'venta_lista' %}">Ventas</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'venta_detalle' venta.pk %}">N.º {{ venta.numero }}</a></li>
+  <li class="breadcrumb-item active">Anular</li>
+</ol></nav>
+<div class="row justify-content-center">
+  <div class="col-xl-7">
+    <div class="oc-encabezado">
+      <div>
+        <h1><i class="bi bi-x-octagon"></i>Anular la nota de venta {{ venta.numero }}</h1>
+        <p>{{ venta.cliente_nombre }} · {{ venta.fecha|date:"d/m/Y H:i" }} · vendida por {{ venta.vendedor }}</p>
+      </div>
+    </div>
+    <div class="card card-body p-4">
+      <ul class="small mb-3">
+        <li>Los artículos vuelven al stock de {{ venta.sucursal }} y quedan registrados en el kardex.</li>
+        {% if venta.total_pagado %}
+        <li>Lo pagado, <strong>Bs {{ venta.total_pagado|floatformat:"2g" }}</strong>, se devuelve desde <strong>su caja</strong> como egreso, con la misma forma de pago con que se cobró.</li>
+        {% else %}
+        <li>La venta no tiene pagos, así que no hay nada que devolver.</li>
+        {% endif %}
+        <li>La anulación no se puede deshacer.</li>
+      </ul>
+      {% if venta.total_pagado and not tiene_caja %}
+      <div class="alert alert-warning d-flex gap-2 mb-3"><i class="bi bi-exclamation-triangle-fill mt-1"></i>
+        <div>Para devolver el dinero necesita una caja abierta. <a href="{% url 'mi_caja' %}">Abra su caja</a> y vuelva a esta pantalla.</div></div>
+      {% endif %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include '_campos.html' %}
+        <div class="d-flex gap-2 border-top pt-3">
+          <button type="submit" class="btn btn-danger" {% if venta.total_pagado and not tiene_caja %}disabled{% endif %}><i class="bi bi-x-octagon me-1"></i>Anular venta</button>
+          <a class="btn btn-outline-secondary" href="{% url 'venta_detalle' venta.pk %}">Volver</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

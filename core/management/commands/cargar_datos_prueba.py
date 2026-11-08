@@ -12,7 +12,7 @@ from core import roles
 from core.models import Sucursal, Usuario
 from inventario import servicios as inventario
 from inventario.models import Ajuste, Articulo, Categoria, Movimiento, Proveedor
-from ventas.models import Pago, Venta
+from ventas.models import DetalleVenta, Pago, Venta
 
 CLAVE_PRUEBA = 'Casimiro2026!'
 
@@ -156,10 +156,18 @@ class Command(BaseCommand):
             return ayer.replace(hour=hora, minute=minuto, second=0, microsecond=0)
 
         sesion = SesionCaja.objects.create(usuario=cajero, sucursal=cajero.sucursal, monto_inicial=Decimal('200'))
+        # Armazón (350) + 2 lunas (2 × 180) = 710, con un descuento de 60: total 650, anticipo 350, saldo 300.
+        armazon, luna = Articulo.objects.get(codigo='ARM-001'), Articulo.objects.get(codigo='LUN-001')
         venta = Venta.objects.create(
             vendedor=cajero, sucursal=cajero.sucursal, cliente_nombre='Cliente de prueba', cliente_ci='5555555',
-            descripcion='Armazón y lunas monofocales', total=Decimal('650'),
+            descuento=Decimal('60'), total=Decimal('650'),
         )
+        salidas = inventario.registrar_salida_venta(cajero, cajero.sucursal, [(armazon, 1), (luna, 2)], str(venta))
+        DetalleVenta.objects.bulk_create([
+            DetalleVenta(venta=venta, articulo=a, cantidad=c, precio_unitario=a.precio_venta,
+                         costo_unitario=salidas[a.pk].costo_unitario)
+            for a, c in ((armazon, 1), (luna, 2))
+        ])
         movimiento = MovimientoCaja.objects.create(
             sesion=sesion, usuario=cajero, tipo=MovimientoCaja.Tipo.INGRESO, forma_pago=FormaPago.EFECTIVO,
             monto=Decimal('350'), concepto=f'Pago de la nota de venta {venta.numero}',

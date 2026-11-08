@@ -21,7 +21,7 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 | Usuario | Rol | Sucursal | Qué demostrar |
 |---|---|---|---|
 | `administrador` | Administrador | Centro | CRUD de usuarios, sucursales, registro de actividad y todos los módulos |
-| `gerente` | Gerente | Centro | Ve ventas, cajas y asistencia de todos; no puede crear ni editar usuarios |
+| `gerente` | Gerente | Centro | Ve ventas, cajas y asistencia de todos y anula ventas; no puede crear ni editar usuarios |
 | `cajero1` | Cajero/Vendedor | Centro | Abre caja, registra ventas y pagos, cierra con arqueo. Tiene una caja cerrada de ejemplo |
 | `cajero2` | Cajero/Vendedor | Norte | No ve las ventas ni las cajas de `cajero1` |
 | `rrhh` | Recursos Humanos | Centro | Ve la asistencia de todo el personal |
@@ -72,6 +72,7 @@ erDiagram
     caja_sesioncaja ||--o{ caja_movimientocaja : "contiene"
     core_usuario ||--o{ caja_movimientocaja : "registra"
     core_usuario ||--o{ ventas_venta : "vende"
+    core_usuario |o--o{ ventas_venta : "anula"
     core_sucursal ||--o{ ventas_venta : "en"
     ventas_venta ||--o{ ventas_pago : "se paga con"
     core_usuario ||--o{ ventas_pago : "cobra"
@@ -156,9 +157,13 @@ erDiagram
         bigint sucursal_id FK
         varchar cliente_nombre
         varchar cliente_ci
-        varchar descripcion
-        decimal total
-        varchar estado
+        varchar descripcion "Observación"
+        decimal descuento
+        decimal total "Suma de las líneas menos el descuento"
+        varchar estado "VIGENTE / ANULADA"
+        bigint usuario_anulacion_id FK
+        timestamptz fecha_anulacion
+        varchar motivo_anulacion
     }
     ventas_pago {
         bigint id PK
@@ -181,7 +186,7 @@ erDiagram
     }
 ```
 
-Para exportarlo como imagen, pegue el bloque en https://mermaid.live y descárguelo en PNG o SVG. Las tablas de inventario tienen su propio diagrama en [`inventario.md`](inventario.md#2-diagrama-entidad-relación).
+Para exportarlo como imagen, pegue el bloque en https://mermaid.live y descárguelo en PNG o SVG. Las tablas de inventario y el detalle de la venta (`ventas_detalleventa`) tienen su propio diagrama en [`inventario.md`](inventario.md#2-diagrama-entidad-relación).
 
 **Notas de diseño:**
 
@@ -211,10 +216,11 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Inventario | Enviar mercadería a otra sucursal | `inventario.enviar_traspasos` | ✔ |  |  |  | ✔ |  |  |
 | Inventario | Confirmar la recepción de traspasos en su sucursal | `inventario.recibir_traspasos` | ✔ |  | ✔ |  | ✔ |  |  |
 | Inventario | Ver el kardex, los costos y los movimientos de inventario | `inventario.ver_kardex` | ✔ | ✔ |  |  | ✔ |  |  |
-| Caja | Abrir su caja, registrar movimientos y cerrarla con arqueo | `caja.operar_caja` | ✔ |  | ✔ |  |  |  |  |
+| Caja | Abrir su caja, registrar movimientos y cerrarla con arqueo | `caja.operar_caja` | ✔ | ✔ | ✔ |  |  |  |  |
 | Caja | Ver las cajas de todos los usuarios | `caja.ver_todas_cajas` | ✔ | ✔ |  |  |  |  |  |
 | Ventas | Registrar ventas y cobrar pagos | `ventas.registrar_venta` | ✔ |  | ✔ |  |  |  |  |
 | Ventas | Ver las ventas de todos los vendedores | `ventas.ver_todas_ventas` | ✔ | ✔ |  |  |  |  |  |
+| Ventas | Anular ventas (repone el stock y devuelve lo pagado desde su caja) | `ventas.anular_venta` | ✔ | ✔ |  |  |  |  |  |
 | Asistencia | Marcar su entrada/salida y ver su historial | `asistencia.marcar_asistencia` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | Asistencia | Ver la asistencia de todo el personal | `asistencia.ver_todas_marcaciones` | ✔ | ✔ |  | ✔ |  |  |  |
 

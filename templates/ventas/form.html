@@ -1,24 +1,72 @@
 {% extends 'base.html' %}
 {% block title %}Nueva venta · Ópticas Casimiro{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-xl-9">
-    <div class="oc-encabezado">
-      <div>
-        <h1><i class="bi bi-plus-circle"></i>Nueva venta</h1>
-        <p>Vendedor: {{ user.get_full_name|default:user.username }} · {{ user.sucursal }}</p>
-      </div>
-    </div>
-    <div class="alert alert-info d-flex gap-2 small"><i class="bi bi-info-circle-fill mt-1"></i>
-      <div>Versión provisional: el detalle de productos se incorporará con el módulo de inventario. Por ahora se registra una descripción y el total. El pago se registra en su caja abierta.</div></div>
-    <form method="post" novalidate class="card card-body p-4">
-      {% csrf_token %}
-      {% include '_campos.html' with columnas=2 %}
-      <div class="d-flex gap-2 border-top pt-3">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Registrar venta</button>
-        <a class="btn btn-outline-secondary" href="{% url 'venta_lista' %}">Cancelar</a>
-      </div>
-    </form>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-plus-circle"></i>Nueva venta</h1>
+    <p>Vendedor: {{ user.get_full_name|default:user.username }} · {{ user.sucursal }}</p>
   </div>
 </div>
+<form method="post" novalidate class="card card-body p-4" id="form-venta">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger d-flex gap-2"><i class="bi bi-exclamation-octagon-fill mt-1"></i><div>{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div></div>
+  {% endif %}
+  <h2 class="h6 text-muted text-uppercase mb-2">Cliente</h2>
+  <div class="row g-3 mb-3">
+    {% for campo in form %}{% if campo.name == 'cliente_nombre' or campo.name == 'cliente_ci' %}
+    <div class="col-md-6">{% include '_campo.html' %}</div>
+    {% endif %}{% endfor %}
+  </div>
+  <h2 class="h6 text-muted text-uppercase mb-2">Artículos y servicios</h2>
+  {% include 'inventario/_lineas.html' %}
+  <p class="small text-muted mt-n2 mb-3">El precio es el del catálogo. El stock se descuenta de {{ user.sucursal }} al registrar la venta.</p>
+  <h2 class="h6 text-muted text-uppercase mb-2">Total y pago</h2>
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card card-body bg-body-tertiary h-100">
+        <dl class="row mb-0">
+          <dt class="col-6 fw-normal text-muted">Subtotal</dt><dd class="col-6 text-end mb-1">Bs <span id="subtotal">0,00</span></dd>
+          <dt class="col-6 fw-normal text-muted">Descuento</dt><dd class="col-6 text-end mb-1">− Bs <span id="descuento">0,00</span></dd>
+          <dt class="col-6 fs-5">Total</dt><dd class="col-6 text-end fs-5 fw-semibold text-primary mb-0">Bs <span id="total">0,00</span></dd>
+        </dl>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="row g-3">
+        {% for campo in form %}{% if campo.name != 'cliente_nombre' and campo.name != 'cliente_ci' %}
+        <div class="{% if campo.name == 'observacion' %}col-12{% else %}col-md-4{% endif %}">{% include '_campo.html' %}</div>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+  </div>
+  <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>El pago se registra en su caja abierta. Si el cliente deja un anticipo, el saldo se cobra después desde el detalle de la venta.</p>
+  <div class="d-flex gap-2 border-top pt-3 mt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Registrar venta</button>
+    <a class="btn btn-outline-secondary" href="{% url 'venta_lista' %}">Cancelar</a>
+  </div>
+</form>
+{{ precios|json_script:"precios" }}
+<script>
+(() => {
+  const precios = JSON.parse(document.getElementById('precios').textContent);
+  const form = document.getElementById('form-venta');
+  const formato = n => n.toLocaleString('es-BO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const numero = v => parseFloat(String(v || '').replace(',', '.')) || 0;
+  function recalcular() {
+    let subtotal = 0;
+    form.querySelectorAll('select[name$="-articulo"]').forEach(select => {
+      const cantidad = form.querySelector(`[name="${select.name.replace('-articulo', '-cantidad')}"]`);
+      subtotal += numero(precios[select.value]) * numero(cantidad && cantidad.value);
+    });
+    const descuento = numero(form.querySelector('[name="descuento"]').value);
+    document.getElementById('subtotal').textContent = formato(subtotal);
+    document.getElementById('descuento').textContent = formato(descuento);
+    document.getElementById('total').textContent = formato(Math.max(subtotal - descuento, 0));
+  }
+  form.addEventListener('input', recalcular);
+  form.addEventListener('change', recalcular);
+  recalcular();
+})();
+</script>
 {% endblock %}

@@ -101,7 +101,10 @@ h1, h2, h3, .h1, .h2, .h3, .h4, .h5 { color: var(--oc-petroleo); font-weight: 60
 .oc-navbar { background: var(--oc-petroleo); box-shadow: 0 2px 8px rgba(10, 53, 64, .25); }
 .oc-navbar .navbar-brand { display: flex; align-items: center; gap: .55rem; font-weight: 600; letter-spacing: -.01em; }
 .oc-navbar .navbar-brand img { height: 30px; }
-.oc-navbar .nav-link { color: rgba(255, 255, 255, .82); font-weight: 500; border-radius: .4rem; padding-inline: .75rem !important; }
+.oc-navbar .nav-link { color: rgba(255, 255, 255, .82); font-weight: 500; border-radius: .4rem; padding-inline: .75rem !important; white-space: nowrap; }
+/* Con todos los módulos visibles (administrador, gerente), el menú necesita menos aire entre 1200 y 1400 px;
+   por debajo de 1200 px se pliega en el botón de menú (navbar-expand-xl). */
+@media (min-width: 1200px) and (max-width: 1399.98px) { .oc-navbar .nav-link { padding-inline: .5rem !important; } }
 .oc-navbar .nav-link:hover, .oc-navbar .nav-link:focus { color: #fff; background: rgba(255, 255, 255, .08); }
 .oc-navbar .nav-link.active { color: #fff; background: rgba(42, 157, 143, .35); }
 .oc-navbar .dropdown-menu { border: 1px solid var(--oc-borde); box-shadow: 0 8px 24px rgba(15, 76, 92, .12); padding: .4rem; }

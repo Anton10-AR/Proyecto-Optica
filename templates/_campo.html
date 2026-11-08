@@ -1,0 +1,11 @@
+{% comment %}Dibuja un solo campo (`campo`) con su etiqueta, errores y ayuda. Lo usa _campos.html.{% endcomment %}
+{% if campo.widget_type == 'checkbox' %}
+<div class="form-check">
+  {{ campo }} <label class="form-check-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+</div>
+{% else %}
+<label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+{{ campo }}
+{% endif %}
+{% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+{% if campo.help_text %}<div class="form-text">{{ campo.help_text|safe }}</div>{% endif %}

@@ -9,16 +9,7 @@ o, en dos columnas desde pantallas medianas: {% include '_campos.html' with colu
 <div class="row g-3 mb-3">
 {% for campo in form.visible_fields %}
 <div class="{% if columnas == 2 %}col-md-6{% else %}col-12{% endif %}">
-  {% if campo.widget_type == 'checkbox' %}
-  <div class="form-check">
-    {{ campo }} <label class="form-check-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
-  </div>
-  {% else %}
-  <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="text-danger">*</span>{% endif %}</label>
-  {{ campo }}
-  {% endif %}
-  {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
-  {% if campo.help_text %}<div class="form-text">{{ campo.help_text|safe }}</div>{% endif %}
+  {% include '_campo.html' %}
 </div>
 {% endfor %}
 </div>

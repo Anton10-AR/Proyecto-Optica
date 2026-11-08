@@ -12,8 +12,18 @@
     </h1>
     <p>{{ venta.fecha|date:"d/m/Y H:i" }} · {{ venta.sucursal }}</p>
   </div>
-  <a class="btn btn-outline-primary" href="{% url 'venta_nota' venta.pk %}" target="_blank"><i class="bi bi-printer me-1"></i>Imprimir nota de venta</a>
+  <div class="d-flex gap-2">
+    {% if puede_anular %}<a class="btn btn-outline-danger" href="{% url 'venta_anular' venta.pk %}"><i class="bi bi-x-octagon me-1"></i>Anular</a>{% endif %}
+    <a class="btn btn-outline-primary" href="{% url 'venta_nota' venta.pk %}" target="_blank"><i class="bi bi-printer me-1"></i>Imprimir nota de venta</a>
+  </div>
 </div>
+{% if venta.estado == 'ANULADA' %}
+<div class="alert alert-secondary d-flex gap-2"><i class="bi bi-x-octagon mt-1"></i>
+  <div>Anulada el {{ venta.fecha_anulacion|date:"d/m/Y H:i" }} por {{ venta.usuario_anulacion|default:"—" }}{% if venta.motivo_anulacion %}. Motivo: {{ venta.motivo_anulacion }}{% endif %}.
+  {% if venta.total_pagado %}Lo pagado (Bs {{ venta.total_pagado|floatformat:"2g" }}) se devolvió desde la caja de quien anuló.{% endif %}
+  {% if detalles %}El stock se repuso.{% endif %}</div>
+</div>
+{% endif %}
 <div class="row g-4">
   <div class="col-lg-7">
     <div class="card mb-4">
@@ -21,14 +31,41 @@
         <dl class="row mb-0">
           <dt class="col-sm-4 text-muted fw-medium">Vendedor</dt><dd class="col-sm-8">{{ venta.vendedor }} <span class="text-muted small">(ID {{ venta.vendedor_id }})</span></dd>
           <dt class="col-sm-4 text-muted fw-medium">Cliente</dt><dd class="col-sm-8">{{ venta.cliente_nombre }}{% if venta.cliente_ci %} · CI/NIT {{ venta.cliente_ci }}{% endif %}</dd>
-          <dt class="col-sm-4 text-muted fw-medium">Descripción</dt><dd class="col-sm-8 mb-0">{{ venta.descripcion }}</dd>
+          {% if venta.descripcion %}<dt class="col-sm-4 text-muted fw-medium">{% if detalles %}Observación{% else %}Descripción{% endif %}</dt><dd class="col-sm-8 mb-0">{{ venta.descripcion }}</dd>{% endif %}
         </dl>
       </div>
     </div>
+    {% if detalles %}
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-box-seam me-1 text-info"></i>Artículos</div>
+      <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Artículo</th><th class="text-end">Cantidad</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>
+        {% for d in detalles %}
+          <tr><td>{{ d.articulo.codigo }} · {{ d.articulo.nombre }}</td><td class="text-end">{{ d.cantidad }}</td>
+              <td class="text-end text-nowrap">Bs {{ d.precio_unitario|floatformat:"2g" }}</td><td class="text-end text-nowrap">Bs {{ d.subtotal|floatformat:"2g" }}</td></tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+          {% if venta.descuento %}
+          <tr><td colspan="3" class="text-end text-muted">Subtotal</td><td class="text-end text-nowrap">Bs {{ venta.subtotal|floatformat:"2g" }}</td></tr>
+          <tr><td colspan="3" class="text-end text-muted">Descuento</td><td class="text-end text-nowrap">− Bs {{ venta.descuento|floatformat:"2g" }}</td></tr>
+          {% endif %}
+          <tr><th colspan="3" class="text-end">Total</th><th class="text-end text-nowrap">Bs {{ venta.total|floatformat:"2g" }}</th></tr>
+        </tfoot>
+      </table>
+      </div>
+    </div>
+    {% endif %}
     <div class="row g-3 mb-4 text-center">
       <div class="col-4"><div class="card card-body"><div class="small text-muted">Total</div><div class="fs-5 fw-semibold text-primary">Bs {{ venta.total }}</div></div></div>
       <div class="col-4"><div class="card card-body"><div class="small text-muted">Pagado</div><div class="fs-5 fw-semibold text-success">Bs {{ venta.total_pagado }}</div></div></div>
+      {% if venta.estado == 'ANULADA' %}
+      <div class="col-4"><div class="card card-body"><div class="small text-muted">Devuelto</div><div class="fs-5 fw-semibold text-secondary">Bs {{ venta.total_pagado }}</div></div></div>
+      {% else %}
       <div class="col-4"><div class="card card-body"><div class="small text-muted">Saldo</div><div class="fs-5 fw-semibold {% if venta.saldo > 0 %}text-warning{% else %}text-success{% endif %}">Bs {{ venta.saldo }}</div></div></div>
+      {% endif %}
     </div>
     <div class="card">
       <div class="card-header"><i class="bi bi-wallet2 me-1 text-info"></i>Pagos</div>

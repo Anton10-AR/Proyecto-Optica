@@ -46,6 +46,7 @@ PERMISOS = {
     'Ventas': {
         'ventas.registrar_venta': 'Registrar ventas y cobrar pagos',
         'ventas.ver_todas_ventas': 'Ver las ventas de todos los vendedores',
+        'ventas.anular_venta': 'Anular ventas (repone el stock y devuelve lo pagado desde su caja)',
     },
     'Asistencia': {
         'asistencia.marcar_asistencia': 'Marcar su entrada/salida y ver su historial',
@@ -62,8 +63,10 @@ ROLES = {
         'core.view_sucursal',
         'inventario.ver_articulos',
         'inventario.ver_kardex',
+        'caja.operar_caja',  # para devolver lo pagado al anular una venta
         'caja.ver_todas_cajas',
         'ventas.ver_todas_ventas',
+        'ventas.anular_venta',
         'asistencia.marcar_asistencia',
         'asistencia.ver_todas_marcaciones',
     ],

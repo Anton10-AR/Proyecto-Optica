@@ -159,6 +159,41 @@ def enviar_traspaso(usuario, origen, destino, lineas, observacion=''):
 
 
 @transaction.atomic
+def registrar_salida_venta(usuario, sucursal, lineas, referencia):
+    """Descuenta del stock de la sucursal los artículos vendidos (RF10, RNF05).
+
+    `lineas` = [(artículo, cantidad), ...], solo artículos que controlan stock. Se valoran al costo
+    promedio vigente. Devuelve {pk del artículo: movimiento} para que la venta guarde el costo.
+    `ventas` llama a esta función dentro de la misma transacción en la que crea la venta.
+    """
+    _validar_sucursal(sucursal, 'de la venta')
+    _validar_lineas(lineas, exigir_activos=True)
+    articulos = _bloquear_articulos([a.pk for a, _ in lineas])
+    movimientos = {}
+    for linea, cantidad in sorted(lineas, key=lambda l: l[0].pk):
+        articulo = articulos[linea.pk]
+        movimientos[articulo.pk] = _mover(articulo, sucursal, Movimiento.Tipo.VENTA, cantidad,
+                                          articulo.costo_promedio, usuario, referencia)
+    return movimientos
+
+
+@transaction.atomic
+def reponer_venta(usuario, sucursal, lineas, referencia):
+    """Devuelve al stock lo vendido cuando se anula la venta. `lineas` = [(artículo, cantidad, costo), ...].
+
+    Las unidades vuelven al costo con el que salieron, así que el costo promedio se recalcula como en una compra.
+    """
+    _validar_lineas(lineas)
+    articulos = _bloquear_articulos([a.pk for a, *_ in lineas])
+    for linea, cantidad, costo in sorted(lineas, key=lambda l: l[0].pk):
+        articulo = articulos[linea.pk]
+        articulo.costo_promedio = costo_promedio_ponderado(
+            unidades_totales(articulo), articulo.costo_promedio, cantidad, costo)
+        articulo.save(update_fields=['costo_promedio'])
+        _mover(articulo, sucursal, Movimiento.Tipo.ANULACION_VENTA, cantidad, costo, usuario, referencia)
+
+
+@transaction.atomic
 def recibir_traspaso(traspaso, usuario):
     """Segundo paso: quien está en la sucursal de destino confirma la recepción y la mercadería entra a su stock."""
     traspaso = Traspaso.objects.select_for_update().get(pk=traspaso.pk)
