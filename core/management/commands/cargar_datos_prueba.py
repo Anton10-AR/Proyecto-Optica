@@ -10,7 +10,8 @@ from asistencia.models import Marcacion
 from caja.models import FormaPago, MovimientoCaja, SesionCaja
 from core import roles
 from core.models import Sucursal, Usuario
-from inventario.models import Articulo, Categoria, Proveedor
+from inventario import servicios as inventario
+from inventario.models import Ajuste, Articulo, Categoria, Movimiento, Proveedor
 from ventas.models import Pago, Venta
 
 CLAVE_PRUEBA = 'Casimiro2026!'
@@ -90,6 +91,7 @@ class Command(BaseCommand):
             usuarios[username] = usuario
 
         self._catalogo()
+        self._inventario_inicial(usuarios, sucursales)
         self._operaciones_de_ejemplo(usuarios)
 
         self.stdout.write(self.style.SUCCESS(
@@ -113,6 +115,35 @@ class Command(BaseCommand):
                 'proveedor': proveedores[proveedor] if proveedor is not None else None,
                 'precio_venta': Decimal(precio), 'stock_minimo': minimo, 'controla_stock': controla, 'activo': True,
             })
+
+    def _inventario_inicial(self, usuarios, sucursales):
+        """Compras, traspasos y una baja hechos con los servicios, para que el kardex y el stock tengan datos."""
+        if Movimiento.objects.exists():
+            return
+        almacen, cajero_norte = usuarios['almacen'], usuarios['cajero2']
+        centro, norte = sucursales
+        andina, lunas = (Proveedor.objects.get(razon_social=p[0]) for p in PROVEEDORES)
+        art = {a.codigo: a for a in Articulo.objects.all()}
+
+        inventario.registrar_ingreso(almacen, centro, andina, [
+            (art['ARM-001'], 10, Decimal('150')), (art['ARM-002'], 8, Decimal('110')),
+            (art['ACC-001'], 30, Decimal('12')), (art['ACC-002'], 12, Decimal('9')),
+        ], documento='F-0001520')
+        inventario.registrar_ingreso(almacen, centro, lunas, [
+            (art['LUN-001'], 40, Decimal('60')), (art['LUN-002'], 12, Decimal('260')),
+            (art['LCO-001'], 15, Decimal('120')),
+        ], documento='F-0098211')
+        # Segunda compra a otro costo: el promedio de ARM-001 pasa a (10 x 150 + 6 x 170) / 16 = 157,50.
+        inventario.registrar_ingreso(almacen, centro, andina, [(art['ARM-001'], 6, Decimal('170'))],
+                                     documento='F-0001587')
+        recibido = inventario.enviar_traspaso(almacen, centro, norte, [
+            (art['ARM-001'], 4), (art['LUN-001'], 12), (art['ACC-001'], 8),
+        ], observacion='Reposición semanal')
+        inventario.recibir_traspaso(recibido, cajero_norte)
+        inventario.enviar_traspaso(almacen, centro, norte, [(art['ARM-002'], 3), (art['ACC-002'], 2)],
+                                   observacion='Pedido de la sucursal')
+        inventario.registrar_ajuste(almacen, centro, art['ARM-002'], Ajuste.Tipo.BAJA, 1,
+                                    'Armazón con la bisagra rota al exhibirlo')
 
     def _operaciones_de_ejemplo(self, usuarios):
         """Una caja cerrada con una venta y marcaciones de ayer, para que los historiales no estén vacíos."""

@@ -1,6 +1,21 @@
 from django.contrib import admin
 
-from .models import Articulo, Categoria, Existencia, Proveedor
+from .models import (
+    Ajuste, Articulo, Categoria, DetalleIngreso, DetalleTraspaso, Existencia, Ingreso, Movimiento, Proveedor, Traspaso,
+)
+
+
+class SoloLecturaMixin:
+    """Los movimientos de stock se registran solo con inventario.servicios, nunca desde el admin."""
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Categoria)
@@ -14,15 +29,10 @@ class ProveedorAdmin(admin.ModelAdmin):
     search_fields = ('razon_social', 'nit')
 
 
-class ExistenciaInline(admin.TabularInline):
-    """Solo lectura: el stock se modifica con los movimientos de inventario, no a mano."""
+class ExistenciaInline(SoloLecturaMixin, admin.TabularInline):
     model = Existencia
     extra = 0
-    can_delete = False
     readonly_fields = ('sucursal', 'cantidad')
-
-    def has_add_permission(self, request, obj=None):
-        return False
 
 
 @admin.register(Articulo)
@@ -32,3 +42,40 @@ class ArticuloAdmin(admin.ModelAdmin):
     search_fields = ('codigo', 'codigo_barras', 'nombre')
     readonly_fields = ('costo_promedio',)
     inlines = [ExistenciaInline]
+
+
+class DetalleIngresoInline(SoloLecturaMixin, admin.TabularInline):
+    model = DetalleIngreso
+    extra = 0
+
+
+@admin.register(Ingreso)
+class IngresoAdmin(SoloLecturaMixin, admin.ModelAdmin):
+    list_display = ('numero', 'fecha', 'sucursal', 'proveedor', 'documento', 'usuario')
+    inlines = [DetalleIngresoInline]
+
+
+@admin.register(Ajuste)
+class AjusteAdmin(SoloLecturaMixin, admin.ModelAdmin):
+    list_display = ('numero', 'fecha', 'tipo', 'articulo', 'sucursal', 'cantidad', 'motivo', 'usuario')
+    list_filter = ('tipo', 'sucursal')
+
+
+class DetalleTraspasoInline(SoloLecturaMixin, admin.TabularInline):
+    model = DetalleTraspaso
+    extra = 0
+
+
+@admin.register(Traspaso)
+class TraspasoAdmin(SoloLecturaMixin, admin.ModelAdmin):
+    list_display = ('numero', 'fecha_envio', 'origen', 'destino', 'estado', 'usuario_envio', 'usuario_recepcion')
+    list_filter = ('estado',)
+    inlines = [DetalleTraspasoInline]
+
+
+@admin.register(Movimiento)
+class MovimientoAdmin(SoloLecturaMixin, admin.ModelAdmin):
+    list_display = ('fecha', 'articulo', 'sucursal', 'tipo', 'cantidad', 'costo_unitario', 'saldo', 'costo_promedio',
+                    'referencia')
+    list_filter = ('tipo', 'sucursal')
+    search_fields = ('articulo__codigo', 'articulo__nombre', 'referencia')

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}{{ ingreso }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'ingreso_lista' %}">Ingresos</a></li>
+  <li class="breadcrumb-item active">N.º {{ ingreso.numero }}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-box-arrow-in-down"></i>Ingreso {{ ingreso.numero }}</h1>
+    <p>{{ ingreso.fecha|date:"d/m/Y H:i" }} · {{ ingreso.sucursal }}</p>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <dl class="mb-0">
+          <dt class="text-muted fw-medium">Proveedor</dt><dd>{{ ingreso.proveedor }}</dd>
+          <dt class="text-muted fw-medium">Factura o nota</dt><dd>{{ ingreso.documento|default:"—" }}</dd>
+          <dt class="text-muted fw-medium">Registrado por</dt><dd>{{ ingreso.usuario }}</dd>
+          {% if ingreso.observacion %}<dt class="text-muted fw-medium">Observación</dt><dd class="mb-0">{{ ingreso.observacion }}</dd>{% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead><tr><th>Artículo</th><th class="text-end">Cantidad</th><th class="text-end">Costo unitario</th><th class="text-end">Subtotal</th></tr></thead>
+        <tbody>
+        {% for d in detalles %}
+          <tr>
+            <td>{% if perms.inventario.ver_kardex %}<a href="{% url 'kardex' d.articulo_id %}?sucursal={{ ingreso.sucursal_id }}">{{ d.articulo }}</a>{% else %}{{ d.articulo }}{% endif %}</td>
+            <td class="text-end">{{ d.cantidad }}</td>
+            <td class="text-end text-nowrap">Bs {{ d.costo_unitario|floatformat:"2g" }}</td>
+            <td class="text-end text-nowrap">Bs {{ d.subtotal|floatformat:"2g" }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot><tr><th colspan="3" class="text-end">Total</th><th class="text-end text-nowrap">Bs {{ ingreso.total|floatformat:"2g" }}</th></tr></tfoot>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

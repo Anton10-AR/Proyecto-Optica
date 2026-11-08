@@ -38,11 +38,15 @@
           </ul>
         </li>
         {% endif %}
-        {% if perms.inventario.ver_articulos or perms.inventario.gestionar_proveedores %}
+        {% if perms.inventario.ver_articulos or perms.inventario.gestionar_proveedores or perms.inventario.recibir_traspasos %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if '/inventario/' in request.path %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-box-seam me-1"></i>Inventario</a>
           <ul class="dropdown-menu">
             {% if perms.inventario.ver_articulos %}<li><a class="dropdown-item" href="{% url 'articulo_lista' %}"><i class="bi bi-upc-scan"></i>Artículos y stock</a></li>{% endif %}
+            {% if perms.inventario.registrar_ingresos or perms.inventario.ver_kardex %}<li><a class="dropdown-item" href="{% url 'ingreso_lista' %}"><i class="bi bi-box-arrow-in-down"></i>Ingresos por compra</a></li>{% endif %}
+            {% if perms.inventario.registrar_ajustes or perms.inventario.ver_kardex %}<li><a class="dropdown-item" href="{% url 'ajuste_lista' %}"><i class="bi bi-clipboard2-minus"></i>Bajas y ajustes</a></li>{% endif %}
+            {% if perms.inventario.enviar_traspasos or perms.inventario.recibir_traspasos or perms.inventario.ver_kardex %}<li><a class="dropdown-item" href="{% url 'traspaso_lista' %}"><i class="bi bi-arrow-left-right"></i>Traspasos</a></li>{% endif %}
+            {% if perms.inventario.gestionar_catalogo or perms.inventario.gestionar_proveedores %}<li><hr class="dropdown-divider"></li>{% endif %}
             {% if perms.inventario.gestionar_catalogo %}<li><a class="dropdown-item" href="{% url 'categoria_lista' %}"><i class="bi bi-tags"></i>Categorías</a></li>{% endif %}
             {% if perms.inventario.gestionar_proveedores %}<li><a class="dropdown-item" href="{% url 'proveedor_lista' %}"><i class="bi bi-truck"></i>Proveedores</a></li>{% endif %}
           </ul>

@@ -9,7 +9,7 @@ from django.db import transaction
 from asistencia.models import Marcacion
 from caja.models import MovimientoCaja, SesionCaja
 from core.models import RegistroActividad, Sucursal, Usuario
-from inventario.models import Articulo, Categoria, Existencia, Proveedor
+from inventario.models import Ajuste, Articulo, Categoria, Existencia, Ingreso, Movimiento, Proveedor, Traspaso
 from ventas.models import Pago, Venta
 
 from .cargar_datos_prueba import ARTICULOS, CATEGORIAS, CLAVE_PRUEBA, PROVEEDORES, SUCURSALES, USUARIOS
@@ -43,8 +43,14 @@ class Command(BaseCommand):
                 'marcaciones': Marcacion.objects.all().delete()[0],
                 'registros de auditoría': RegistroActividad.objects.all().delete()[0],
                 'sesiones abiertas': Session.objects.all().delete()[0],
+                'movimientos de inventario': Movimiento.objects.all().delete()[0],
+                'ingresos': Ingreso.objects.all().delete()[0],
+                'bajas y ajustes': Ajuste.objects.all().delete()[0],
+                'traspasos': Traspaso.objects.all().delete()[0],
                 'existencias': Existencia.objects.all().delete()[0],
             }
+            # Sin movimientos, el costo promedio vuelve a cero; las compras de prueba lo recalculan.
+            Articulo.objects.update(costo_promedio=0)
             # El catálogo creado en ensayos se borra; el de prueba se restaura con cargar_datos_prueba.
             borrados['artículos de ensayo'] = Articulo.objects.exclude(codigo__in=[a[0] for a in ARTICULOS]).delete()[0]
             de_prueba = [u[0] for u in USUARIOS]

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Traspasos · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-arrow-left-right"></i>Traspasos entre sucursales</h1>
+    <p>La mercadería sale del origen al enviarla y entra al destino cuando la reciben.</p>
+  </div>
+  {% if perms.inventario.enviar_traspasos %}<a class="btn btn-primary" href="{% url 'traspaso_crear' %}"><i class="bi bi-send me-1"></i>Nuevo traspaso</a>{% endif %}
+</div>
+{% if por_recibir and perms.inventario.recibir_traspasos %}
+<div class="alert alert-warning d-flex align-items-center gap-2">
+  <i class="bi bi-truck"></i>
+  <div>Hay {{ por_recibir }} traspaso{{ por_recibir|pluralize }} enviado{{ por_recibir|pluralize }} a {{ user.sucursal }} esperando su recepción.</div>
+  <a class="btn btn-sm btn-outline-dark ms-auto" href="?estado=ENVIADO">Ver pendientes</a>
+</div>
+{% endif %}
+<div class="card mb-3">
+  <div class="card-body">
+    <form class="row g-2" method="get">
+      <div class="col-md-4">
+        <select name="estado" class="form-select" aria-label="Filtrar por estado" onchange="this.form.submit()">
+          <option value="">Todos los estados</option>
+          {% for valor, texto in estados %}<option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ texto }}s</option>{% endfor %}
+        </select>
+      </div>
+      <noscript><div class="col-auto"><button class="btn btn-secondary">Filtrar</button></div></noscript>
+    </form>
+  </div>
+</div>
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+  <thead><tr><th>N.º</th><th>Enviado</th><th>Origen</th><th></th><th>Destino</th><th>Estado</th><th>Recibido</th></tr></thead>
+  <tbody>
+  {% for t in pagina %}
+    <tr>
+      <td><a class="fw-medium" href="{% url 'traspaso_detalle' t.pk %}">{{ t.numero }}</a></td>
+      <td class="text-nowrap">{{ t.fecha_envio|date:"d/m/Y H:i" }}<div class="small text-muted">{{ t.usuario_envio }}</div></td>
+      <td>{{ t.origen }}</td>
+      <td class="text-muted"><i class="bi bi-arrow-right"></i></td>
+      <td>{{ t.destino }}</td>
+      <td>{% if t.estado == 'ENVIADO' %}<span class="oc-estado oc-estado-aviso">En camino</span>{% else %}<span class="oc-estado oc-estado-ok">Recibido</span>{% endif %}</td>
+      <td class="text-nowrap">{% if t.fecha_recepcion %}{{ t.fecha_recepcion|date:"d/m/Y H:i" }}<div class="small text-muted">{{ t.usuario_recepcion }}</div>{% else %}—{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="7" class="text-center text-muted py-5">No hay traspasos.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% include 'inventario/_paginacion.html' with singular='traspaso' plural='traspasos' %}
+{% endblock %}

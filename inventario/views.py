@@ -1,19 +1,26 @@
+from functools import wraps
 from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, ListView, UpdateView
 
 from core.models import Sucursal
 from core.views import PermisoMixin
 
-from .forms import ArticuloForm, CategoriaForm, ProveedorForm
-from .models import Articulo, Categoria, Proveedor
+from . import servicios
+from .forms import (
+    AjusteForm, ArticuloForm, CategoriaForm, IngresoForm, LineasIngresoFormSet, LineasTraspasoFormSet, ProveedorForm,
+    TraspasoForm,
+)
+from .models import Ajuste, Articulo, Categoria, Ingreso, Proveedor, Traspaso
 
 
 class MensajeGuardadoMixin:
@@ -25,6 +32,29 @@ class MensajeGuardadoMixin:
         respuesta = super().form_valid(form)
         messages.success(self.request, self.mensaje.format(objeto=self.object))
         return respuesta
+
+
+def requiere_alguno(*permisos):
+    """Como permission_required, pero basta con tener uno de los permisos."""
+    def decorador(vista):
+        @login_required
+        @wraps(vista)
+        def envoltura(request, *args, **kwargs):
+            if not any(request.user.has_perm(p) for p in permisos):
+                raise PermissionDenied
+            return vista(request, *args, **kwargs)
+        return envoltura
+    return decorador
+
+
+def _con_servicio(form, operacion):
+    """Ejecuta la operación del servicio; si la rechaza, muestra el motivo en el formulario."""
+    try:
+        return operacion()
+    except ValidationError as error:
+        for mensaje in error.messages:
+            form.add_error(None, mensaje)
+        return None
 
 
 # ---------- Artículos ----------
@@ -61,7 +91,8 @@ def articulo_detalle(request, pk):
     # Se listan todas las sucursales activas, también las que aún no tienen existencias del artículo.
     existencias = [(s, cantidades.get(s.pk, 0)) for s in Sucursal.objects.filter(activa=True)]
     contexto = {'articulo': articulo, 'existencias': existencias,
-                'stock_total': sum(cantidades.values())}
+                'stock_total': sum(cantidades.values()),
+                'en_transito': servicios.unidades_en_transito(articulo)}
     return render(request, 'inventario/articulos/detalle.html', contexto)
 
 
@@ -141,3 +172,132 @@ class ProveedorCrearView(ProveedorFormMixin, CreateView):
 
 class ProveedorEditarView(ProveedorFormMixin, UpdateView):
     pass
+
+
+# ---------- Ingresos por compra ----------
+
+@requiere_alguno('inventario.registrar_ingresos', 'inventario.ver_kardex')
+def ingreso_lista(request):
+    ingresos = Ingreso.objects.select_related('sucursal', 'proveedor', 'usuario').prefetch_related('detalles')
+    pagina = Paginator(ingresos, 20).get_page(request.GET.get('pagina'))
+    return render(request, 'inventario/ingresos/lista.html', {'pagina': pagina, 'filtros': ''})
+
+
+@login_required
+@permission_required('inventario.registrar_ingresos', raise_exception=True)
+def ingreso_crear(request):
+    form = IngresoForm(request.POST or None, usuario=request.user)
+    lineas = LineasIngresoFormSet(request.POST or None, prefix='lineas')
+    if request.method == 'POST' and form.is_valid() and lineas.is_valid():
+        d = form.cleaned_data
+        ingreso = _con_servicio(form, lambda: servicios.registrar_ingreso(
+            request.user, d['sucursal'], d['proveedor'], lineas.lineas('cantidad', 'costo_unitario'),
+            d['documento'], d['observacion']))
+        if ingreso:
+            messages.success(request, f'Se registró el {ingreso}: el stock y el costo promedio se actualizaron.')
+            return redirect('ingreso_detalle', ingreso.pk)
+    return render(request, 'inventario/ingresos/form.html', {'form': form, 'lineas': lineas})
+
+
+@requiere_alguno('inventario.registrar_ingresos', 'inventario.ver_kardex')
+def ingreso_detalle(request, pk):
+    ingreso = get_object_or_404(Ingreso.objects.select_related('sucursal', 'proveedor', 'usuario'), pk=pk)
+    detalles = ingreso.detalles.select_related('articulo')
+    return render(request, 'inventario/ingresos/detalle.html', {'ingreso': ingreso, 'detalles': detalles})
+
+
+# ---------- Bajas y ajustes ----------
+
+@requiere_alguno('inventario.registrar_ajustes', 'inventario.ver_kardex')
+def ajuste_lista(request):
+    ajustes = Ajuste.objects.select_related('sucursal', 'articulo', 'usuario')
+    pagina = Paginator(ajustes, 20).get_page(request.GET.get('pagina'))
+    return render(request, 'inventario/ajustes/lista.html', {'pagina': pagina, 'filtros': ''})
+
+
+@login_required
+@permission_required('inventario.registrar_ajustes', raise_exception=True)
+def ajuste_crear(request):
+    form = AjusteForm(request.POST or None, usuario=request.user, initial={'articulo': request.GET.get('articulo')})
+    if request.method == 'POST' and form.is_valid():
+        d = form.cleaned_data
+        ajuste = _con_servicio(form, lambda: servicios.registrar_ajuste(
+            request.user, d['sucursal'], d['articulo'], d['tipo'], d['cantidad'], d['motivo']))
+        if ajuste:
+            messages.success(request, f'Se registró: {ajuste.get_tipo_display().lower()} de {ajuste.cantidad} '
+                                      f'× {ajuste.articulo} en {ajuste.sucursal}.')
+            return redirect('ajuste_lista')
+    return render(request, 'inventario/ajustes/form.html', {'form': form})
+
+
+# ---------- Traspasos ----------
+
+@requiere_alguno('inventario.enviar_traspasos', 'inventario.recibir_traspasos', 'inventario.ver_kardex')
+def traspaso_lista(request):
+    traspasos = Traspaso.objects.select_related('origen', 'destino', 'usuario_envio', 'usuario_recepcion')
+    estado = request.GET.get('estado', '')
+    if estado in Traspaso.Estado.values:
+        traspasos = traspasos.filter(estado=estado)
+    pagina = Paginator(traspasos, 20).get_page(request.GET.get('pagina'))
+    por_recibir = Traspaso.objects.filter(estado=Traspaso.Estado.ENVIADO, destino_id=request.user.sucursal_id).count()
+    contexto = {'pagina': pagina, 'estado': estado, 'estados': Traspaso.Estado.choices,
+                'por_recibir': por_recibir, 'filtros': urlencode({'estado': estado})}
+    return render(request, 'inventario/traspasos/lista.html', contexto)
+
+
+@login_required
+@permission_required('inventario.enviar_traspasos', raise_exception=True)
+def traspaso_crear(request):
+    form = TraspasoForm(request.POST or None, usuario=request.user)
+    lineas = LineasTraspasoFormSet(request.POST or None, prefix='lineas')
+    if request.method == 'POST' and form.is_valid() and lineas.is_valid():
+        d = form.cleaned_data
+        traspaso = _con_servicio(form, lambda: servicios.enviar_traspaso(
+            request.user, d['origen'], d['destino'], lineas.lineas('cantidad'), d['observacion']))
+        if traspaso:
+            messages.success(request, f'Se envió el {traspaso} a {traspaso.destino}. '
+                                      'La mercadería entrará a su stock cuando la reciban.')
+            return redirect('traspaso_detalle', traspaso.pk)
+    return render(request, 'inventario/traspasos/form.html', {'form': form, 'lineas': lineas})
+
+
+@requiere_alguno('inventario.enviar_traspasos', 'inventario.recibir_traspasos', 'inventario.ver_kardex')
+def traspaso_detalle(request, pk):
+    traspaso = get_object_or_404(
+        Traspaso.objects.select_related('origen', 'destino', 'usuario_envio', 'usuario_recepcion'), pk=pk)
+    puede_recibir = (traspaso.estado == Traspaso.Estado.ENVIADO
+                     and request.user.has_perm('inventario.recibir_traspasos')
+                     and request.user.sucursal_id == traspaso.destino_id)
+    contexto = {'traspaso': traspaso, 'detalles': traspaso.detalles.select_related('articulo'),
+                'puede_recibir': puede_recibir}
+    return render(request, 'inventario/traspasos/detalle.html', contexto)
+
+
+@require_POST
+@login_required
+@permission_required('inventario.recibir_traspasos', raise_exception=True)
+def traspaso_recibir(request, pk):
+    traspaso = get_object_or_404(Traspaso, pk=pk)
+    try:
+        servicios.recibir_traspaso(traspaso, request.user)
+        messages.success(request, f'Se recibió el {traspaso}: la mercadería ya está en el stock de {traspaso.destino}.')
+    except ValidationError as error:
+        messages.error(request, ' '.join(error.messages))
+    return redirect('traspaso_detalle', traspaso.pk)
+
+
+# ---------- Kardex ----------
+
+@login_required
+@permission_required('inventario.ver_kardex', raise_exception=True)
+def kardex(request, pk):
+    articulo = get_object_or_404(Articulo, pk=pk)
+    sucursales = Sucursal.objects.filter(activa=True)
+    elegida = request.GET.get('sucursal') or request.user.sucursal_id
+    sucursal = (sucursales.filter(pk=elegida).first() if str(elegida or '').isdigit() else None) or sucursales.first()
+    movimientos = articulo.movimientos.filter(sucursal=sucursal).select_related('usuario')
+    contexto = {'articulo': articulo, 'sucursal': sucursal, 'sucursales': sucursales,
+                'pagina': Paginator(movimientos, 50).get_page(request.GET.get('pagina')),
+                'filtros': urlencode({'sucursal': sucursal.pk if sucursal else ''}),
+                'en_transito': servicios.unidades_en_transito(articulo)}
+    return render(request, 'inventario/kardex.html', contexto)

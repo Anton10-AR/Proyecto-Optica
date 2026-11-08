@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Bajas y ajustes · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-clipboard2-minus"></i>Bajas y ajustes</h1>
+    <p>Mercadería dada de baja (rotura, pérdida, vencimiento) y correcciones por conteo físico.</p>
+  </div>
+  {% if perms.inventario.registrar_ajustes %}<a class="btn btn-primary" href="{% url 'ajuste_crear' %}"><i class="bi bi-plus-lg me-1"></i>Nueva baja o ajuste</a>{% endif %}
+</div>
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+  <thead><tr><th>N.º</th><th>Fecha</th><th>Tipo</th><th>Artículo</th><th>Sucursal</th><th class="text-end">Cantidad</th><th>Motivo</th><th>Registrado por</th></tr></thead>
+  <tbody>
+  {% for a in pagina %}
+    <tr>
+      <td>{{ a.numero }}</td>
+      <td class="text-nowrap">{{ a.fecha|date:"d/m/Y H:i" }}</td>
+      <td>{% if a.es_entrada %}<span class="oc-estado oc-estado-ok">{{ a.get_tipo_display }}</span>{% elif a.tipo == 'BAJA' %}<span class="oc-estado oc-estado-peligro">{{ a.get_tipo_display }}</span>{% else %}<span class="oc-estado oc-estado-aviso">{{ a.get_tipo_display }}</span>{% endif %}</td>
+      <td>{{ a.articulo }}</td>
+      <td>{{ a.sucursal }}</td>
+      <td class="text-end fw-medium">{% if a.es_entrada %}+{% else %}−{% endif %}{{ a.cantidad }}</td>
+      <td>{{ a.motivo }}</td>
+      <td>{{ a.usuario }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="8" class="text-center text-muted py-5">Aún no hay bajas ni ajustes.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% include 'inventario/_paginacion.html' with singular='registro' plural='registros' %}
+{% endblock %}

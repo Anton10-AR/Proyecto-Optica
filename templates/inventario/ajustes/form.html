@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Nueva baja o ajuste · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-8">
+    <nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'ajuste_lista' %}">Bajas y ajustes</a></li>
+      <li class="breadcrumb-item active">Nuevo</li>
+    </ol></nav>
+    <div class="oc-encabezado">
+      <div>
+        <h1><i class="bi bi-clipboard2-minus"></i>Nueva baja o ajuste</h1>
+        <p>Se valora al costo promedio vigente del artículo y queda en el kardex.</p>
+      </div>
+    </div>
+    <form method="post" novalidate class="card card-body p-4">
+      {% csrf_token %}
+      {% include '_campos.html' with columnas=2 %}
+      <div class="d-flex gap-2 border-top pt-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Registrar</button>
+        <a class="btn btn-outline-secondary" href="{% url 'ajuste_lista' %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

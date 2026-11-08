@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo traspaso · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'traspaso_lista' %}">Traspasos</a></li>
+  <li class="breadcrumb-item active">Nuevo</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-send"></i>Nuevo traspaso</h1>
+    <p>Al enviarlo, la mercadería sale del stock del origen. Entrará al destino cuando su personal confirme la recepción.</p>
+  </div>
+</div>
+<form method="post" novalidate class="card card-body p-4">
+  {% csrf_token %}
+  {% include '_campos.html' with columnas=2 %}
+  <h2 class="h6 text-muted text-uppercase mb-2">Artículos enviados</h2>
+  {% include 'inventario/_lineas.html' %}
+  <div class="d-flex gap-2 border-top pt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Enviar traspaso</button>
+    <a class="btn btn-outline-secondary" href="{% url 'traspaso_lista' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

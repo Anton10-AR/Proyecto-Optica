@@ -221,10 +221,11 @@ class PantallasTests(TestCase):
 
     def test_todas_las_pantallas_responden(self):
         from caja.models import SesionCaja
-        from inventario.models import Articulo, Categoria, Proveedor
+        from inventario.models import Articulo, Categoria, Ingreso, Proveedor, Traspaso
         from ventas.models import Venta
         venta, sesion = Venta.objects.get(), SesionCaja.objects.get()
         articulo, categoria, proveedor = Articulo.objects.first(), Categoria.objects.first(), Proveedor.objects.first()
+        ingreso, traspaso = Ingreso.objects.first(), Traspaso.objects.first()
         otro = Usuario.objects.get(username='empleado1')
         urls = [
             reverse('inicio'), reverse('password_change'),
@@ -238,7 +239,10 @@ class PantallasTests(TestCase):
             reverse('articulo_lista'), reverse('articulo_crear'), reverse('articulo_detalle', args=[articulo.pk]),
             reverse('articulo_editar', args=[articulo.pk]), reverse('categoria_lista'), reverse('categoria_crear'),
             reverse('categoria_editar', args=[categoria.pk]), reverse('proveedor_lista'), reverse('proveedor_crear'),
-            reverse('proveedor_editar', args=[proveedor.pk]),
+            reverse('proveedor_editar', args=[proveedor.pk]), reverse('kardex', args=[articulo.pk]),
+            reverse('ingreso_lista'), reverse('ingreso_crear'), reverse('ingreso_detalle', args=[ingreso.pk]),
+            reverse('ajuste_lista'), reverse('ajuste_crear'),
+            reverse('traspaso_lista'), reverse('traspaso_crear'), reverse('traspaso_detalle', args=[traspaso.pk]),
         ]
         self.client.force_login(Usuario.objects.get(username='administrador'))
         for url in urls:
@@ -291,3 +295,10 @@ class PrepararDemoTests(TestCase):
         self.assertFalse(Categoria.objects.filter(nombre='Ensayo').exists())
         self.assertFalse(Proveedor.objects.filter(razon_social='Proveedor de ensayo').exists())
         self.assertEqual(Articulo.objects.get(codigo='ARM-001').precio_venta, Decimal('350'))
+        # El inventario de prueba se regenera una sola vez, con el costo promedio de las compras de prueba.
+        from inventario.models import Existencia, Traspaso
+        arm = Articulo.objects.get(codigo='ARM-001')
+        self.assertEqual(arm.costo_promedio, Decimal('157.5'))
+        self.assertEqual(sorted(Existencia.objects.filter(articulo=arm).values_list('sucursal__nombre', 'cantidad')),
+                         [('Sucursal Centro', 12), ('Sucursal Norte', 4)])
+        self.assertEqual(Traspaso.objects.filter(estado=Traspaso.Estado.ENVIADO).count(), 1)
