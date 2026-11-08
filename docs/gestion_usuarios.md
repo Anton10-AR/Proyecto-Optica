@@ -2,7 +2,7 @@
 
 Ópticas Casimiro · SIS301 Análisis y Diseño de Sistemas
 
-Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración.
+Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración. El módulo de inventario, desarrollado después, se documenta en [`inventario.md`](inventario.md).
 
 ## 1. Cómo ejecutar la demostración
 
@@ -12,7 +12,7 @@ Este documento acompaña al código fuente del módulo. Reúne el diagrama entid
 .venv/Scripts/python manage.py runserver
 ```
 
-`preparar_demo` borra las ventas, cajas, marcaciones, la auditoría, las sesiones abiertas y los usuarios creados durante los ensayos. Después recarga los usuarios de prueba con su contraseña original y una caja cerrada de ejemplo, con una venta que tiene saldo pendiente. Los superusuarios se conservan. Ejecútelo antes de cada ensayo y antes de presentar. Solo funciona con `DJANGO_DEBUG=True`, y pide confirmación salvo que se use `--si`.
+`preparar_demo` borra las ventas, cajas, marcaciones, los movimientos de inventario, la auditoría, las sesiones abiertas y los usuarios creados durante los ensayos. Después recarga los usuarios de prueba con su contraseña original, una caja cerrada de ejemplo con una venta que tiene saldo pendiente, y el catálogo de inventario con sus movimientos iniciales. Los superusuarios se conservan. Ejecútelo antes de cada ensayo y antes de presentar. Solo funciona con `DJANGO_DEBUG=True`, y pide confirmación salvo que se use `--si`.
 
 El sistema no necesita internet: Bootstrap, los íconos, HTMX y la tipografía están dentro del proyecto (`static/vendor/`).
 
@@ -26,7 +26,9 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 | `cajero2` | Cajero/Vendedor | Norte | No ve las ventas ni las cajas de `cajero1` |
 | `rrhh` | Recursos Humanos | Centro | Ve la asistencia de todo el personal |
 | `empleado1` | Empleado | Centro | Solo marca su asistencia y ve su historial. Tiene marcaciones de ayer |
-| `almacen`, `optico`, `empleado2` | Otros roles | — | Mismo acceso que Empleado por ahora |
+| `almacen` | Encargado de almacén | Centro | Catálogo, ingresos, bajas, traspasos y kardex (ver [`inventario.md`](inventario.md)) |
+| `optico` | Óptico/Técnico de taller | Centro | Consulta los artículos y el stock |
+| `empleado2` | Empleado | Norte | Igual que `empleado1` |
 | `exempleado` | Empleado | Centro | **Cuenta desactivada**: el inicio de sesión se rechaza |
 
 Las capturas de cada paso están en [`capturas/`](capturas/).
@@ -179,7 +181,7 @@ erDiagram
     }
 ```
 
-Para exportarlo como imagen, pegue el bloque en https://mermaid.live y descárguelo en PNG o SVG.
+Para exportarlo como imagen, pegue el bloque en https://mermaid.live y descárguelo en PNG o SVG. Las tablas de inventario tienen su propio diagrama en [`inventario.md`](inventario.md#2-diagrama-entidad-relación).
 
 **Notas de diseño:**
 
@@ -201,6 +203,14 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Sucursales | Ver sucursales | `core.view_sucursal` | ✔ | ✔ |  | ✔ |  |  |  |
 | Sucursales | Crear sucursales | `core.add_sucursal` | ✔ |  |  |  |  |  |  |
 | Sucursales | Editar sucursales | `core.change_sucursal` | ✔ |  |  |  |  |  |  |
+| Inventario | Consultar artículos, precios y stock por sucursal | `inventario.ver_articulos` | ✔ | ✔ | ✔ |  | ✔ | ✔ |  |
+| Inventario | Crear y editar artículos y categorías | `inventario.gestionar_catalogo` | ✔ |  |  |  | ✔ |  |  |
+| Inventario | Ver, crear y editar proveedores | `inventario.gestionar_proveedores` | ✔ |  |  |  | ✔ |  |  |
+| Inventario | Registrar ingresos de mercadería por compra | `inventario.registrar_ingresos` | ✔ |  |  |  | ✔ |  |  |
+| Inventario | Registrar bajas y ajustes por conteo físico | `inventario.registrar_ajustes` | ✔ |  |  |  | ✔ |  |  |
+| Inventario | Enviar mercadería a otra sucursal | `inventario.enviar_traspasos` | ✔ |  |  |  | ✔ |  |  |
+| Inventario | Confirmar la recepción de traspasos en su sucursal | `inventario.recibir_traspasos` | ✔ |  | ✔ |  | ✔ |  |  |
+| Inventario | Ver el kardex, los costos y los movimientos de inventario | `inventario.ver_kardex` | ✔ | ✔ |  |  | ✔ |  |  |
 | Caja | Abrir su caja, registrar movimientos y cerrarla con arqueo | `caja.operar_caja` | ✔ |  | ✔ |  |  |  |  |
 | Caja | Ver las cajas de todos los usuarios | `caja.ver_todas_cajas` | ✔ | ✔ |  |  |  |  |  |
 | Ventas | Registrar ventas y cobrar pagos | `ventas.registrar_venta` | ✔ |  | ✔ |  |  |  |  |
@@ -208,8 +218,8 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Asistencia | Marcar su entrada/salida y ver su historial | `asistencia.marcar_asistencia` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | Asistencia | Ver la asistencia de todo el personal | `asistencia.ver_todas_marcaciones` | ✔ | ✔ |  | ✔ |  |  |  |
 
-- Los tres roles mínimos del enunciado son **Administrador**, **Cajero/Vendedor** y **Empleado**. Los otros cuatro provienen del documento de visión y recibirán permisos propios a medida que se implementen sus módulos (inventario, órdenes de trabajo, horarios).
-- El Cajero/Vendedor también marca su propia asistencia, porque es parte del personal. Fuera de eso, solo accede a Ventas y Caja, como pide el enunciado.
+- Los tres roles mínimos del enunciado son **Administrador**, **Cajero/Vendedor** y **Empleado**. Los otros cuatro provienen del documento de visión y reciben permisos propios a medida que se implementan sus módulos: el Encargado de almacén ya tiene los de inventario, y el Óptico/Técnico de taller tendrá los de órdenes de trabajo.
+- El Cajero/Vendedor también marca su propia asistencia, porque es parte del personal. Además de Ventas y Caja, consulta el catálogo (precios y stock) y confirma la recepción de los traspasos que llegan a su sucursal, pero no ve costos.
 
 ## 4. Cumplimiento del enunciado
 
@@ -232,7 +242,7 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 ## 5. Scripts SQL
 
 - `docs/sql/01_esquema.sql`: esquema completo (`pg_dump --schema-only`).
-- `docs/sql/02_datos_prueba.sql`: roles, permisos, sucursales, usuarios de prueba y operaciones de ejemplo.
+- `docs/sql/02_datos_prueba.sql`: roles, permisos, sucursales, usuarios de prueba, operaciones de ejemplo y el inventario inicial.
 
 ```bash
 createdb optica_demo
@@ -255,3 +265,4 @@ Los tests cubren:
 - **Caja:** apertura única por usuario y arqueo.
 - **Ventas:** vendedor, pagos e integridad referencial.
 - **Asistencia:** radio de la sucursal y alternancia entre entrada y salida.
+- **Inventario:** ver [`inventario.md`](inventario.md#6-scripts-sql-y-pruebas).
