@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
@@ -14,12 +16,27 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, ListView, UpdateView
 
 from .auditoria import Accion, registrar
-from .forms import CambiarClaveForm, LoginForm, ResetearClaveForm, SucursalForm, UsuarioCrearForm, UsuarioForm
-from .models import RegistroActividad, Sucursal, Usuario
+from .forms import (
+    CambiarClaveForm, ConfiguracionForm, LoginForm, ResetearClaveForm, SucursalForm, UsuarioCrearForm, UsuarioForm,
+)
+from .models import Configuracion, RegistroActividad, Sucursal, Usuario
 
 
 class PermisoMixin(LoginRequiredMixin, PermissionRequiredMixin):
     raise_exception = True
+
+
+def requiere_alguno(*permisos):
+    """Como permission_required, pero basta con tener uno de los permisos."""
+    def decorador(vista):
+        @login_required
+        @wraps(vista)
+        def envoltura(request, *args, **kwargs):
+            if not any(request.user.has_perm(p) for p in permisos):
+                raise PermissionDenied
+            return vista(request, *args, **kwargs)
+        return envoltura
+    return decorador
 
 
 def usuarios_gestionables(request):
@@ -195,3 +212,17 @@ class SucursalEditarView(PermisoMixin, UpdateView):
     form_class = SucursalForm
     template_name = 'core/sucursales/form.html'
     success_url = reverse_lazy('sucursal_lista')
+
+
+# ---------- Parámetros ----------
+
+@login_required
+@permission_required('core.change_configuracion', raise_exception=True)
+def parametros(request):
+    """Parámetros del negocio que define el gerente, como el anticipo mínimo para lentes graduados (RF32)."""
+    form = ConfiguracionForm(request.POST or None, instance=Configuracion.actual())
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Se guardaron los parámetros del sistema.')
+        return redirect('parametros')
+    return render(request, 'core/parametros.html', {'form': form})

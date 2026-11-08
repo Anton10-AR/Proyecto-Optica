@@ -48,7 +48,7 @@ class ArticuloForm(BootstrapMixin, forms.ModelForm):
     class Meta:
         model = Articulo
         fields = ['codigo', 'codigo_barras', 'nombre', 'categoria', 'marca', 'proveedor',
-                  'precio_venta', 'stock_minimo', 'controla_stock', 'activo']
+                  'precio_venta', 'stock_minimo', 'controla_stock', 'requiere_receta', 'activo']
         help_texts = {
             'codigo': 'Código interno, por ejemplo ARM-001. Se guarda en mayúsculas.',
             'codigo_barras': 'Opcional. Puede escanearlo con el lector.',

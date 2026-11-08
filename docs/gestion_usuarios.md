@@ -2,7 +2,7 @@
 
 Ópticas Casimiro · SIS301 Análisis y Diseño de Sistemas
 
-Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración. El módulo de inventario, desarrollado después, se documenta en [`inventario.md`](inventario.md).
+Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración. Los módulos desarrollados después se documentan aparte: el inventario en [`inventario.md`](inventario.md) y los clientes, recetas y órdenes de trabajo en [`recetas_ordenes.md`](recetas_ordenes.md).
 
 ## 1. Cómo ejecutar la demostración
 
@@ -12,7 +12,7 @@ Este documento acompaña al código fuente del módulo. Reúne el diagrama entid
 .venv/Scripts/python manage.py runserver
 ```
 
-`preparar_demo` borra las ventas, cajas, marcaciones, los movimientos de inventario, la auditoría, las sesiones abiertas y los usuarios creados durante los ensayos. Después recarga los usuarios de prueba con su contraseña original, una caja cerrada de ejemplo con una venta que tiene saldo pendiente, y el catálogo de inventario con sus movimientos iniciales. Los superusuarios se conservan. Ejecútelo antes de cada ensayo y antes de presentar. Solo funciona con `DJANGO_DEBUG=True`, y pide confirmación salvo que se use `--si`.
+`preparar_demo` borra las ventas, cajas, marcaciones, los movimientos de inventario, la auditoría, las sesiones abiertas y los usuarios creados durante los ensayos. Después recarga los usuarios de prueba con su contraseña original, una caja cerrada de ejemplo con una venta que tiene saldo pendiente, el catálogo de inventario con sus movimientos iniciales, y clientes con sus recetas y una orden de trabajo lista para entregar. Los superusuarios se conservan. Ejecútelo antes de cada ensayo y antes de presentar. Solo funciona con `DJANGO_DEBUG=True`, y pide confirmación salvo que se use `--si`.
 
 El sistema no necesita internet: Bootstrap, los íconos, HTMX y la tipografía están dentro del proyecto (`static/vendor/`).
 
@@ -27,7 +27,7 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 | `rrhh` | Recursos Humanos | Centro | Ve la asistencia de todo el personal |
 | `empleado1` | Empleado | Centro | Solo marca su asistencia y ve su historial. Tiene marcaciones de ayer |
 | `almacen` | Encargado de almacén | Centro | Catálogo, ingresos, bajas, traspasos y kardex (ver [`inventario.md`](inventario.md)) |
-| `optico` | Óptico/Técnico de taller | Centro | Consulta los artículos y el stock |
+| `optico` | Óptico/Técnico de taller | Centro | Registra recetas de examen y avanza las órdenes de trabajo (ver [`recetas_ordenes.md`](recetas_ordenes.md)) |
 | `empleado2` | Empleado | Norte | Igual que `empleado1` |
 | `exempleado` | Empleado | Centro | **Cuenta desactivada**: el inicio de sesión se rechaza |
 
@@ -208,6 +208,7 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Sucursales | Ver sucursales | `core.view_sucursal` | ✔ | ✔ |  | ✔ |  |  |  |
 | Sucursales | Crear sucursales | `core.add_sucursal` | ✔ |  |  |  |  |  |  |
 | Sucursales | Editar sucursales | `core.change_sucursal` | ✔ |  |  |  |  |  |  |
+| Parámetros | Definir los parámetros del negocio (anticipo mínimo) | `core.change_configuracion` | ✔ | ✔ |  |  |  |  |  |
 | Inventario | Consultar artículos, precios y stock por sucursal | `inventario.ver_articulos` | ✔ | ✔ | ✔ |  | ✔ | ✔ |  |
 | Inventario | Crear y editar artículos y categorías | `inventario.gestionar_catalogo` | ✔ |  |  |  | ✔ |  |  |
 | Inventario | Ver, crear y editar proveedores | `inventario.gestionar_proveedores` | ✔ |  |  |  | ✔ |  |  |
@@ -221,10 +222,17 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Ventas | Registrar ventas y cobrar pagos | `ventas.registrar_venta` | ✔ |  | ✔ |  |  |  |  |
 | Ventas | Ver las ventas de todos los vendedores | `ventas.ver_todas_ventas` | ✔ | ✔ |  |  |  |  |  |
 | Ventas | Anular ventas (repone el stock y devuelve lo pagado desde su caja) | `ventas.anular_venta` | ✔ | ✔ |  |  |  |  |  |
+| Clientes y recetas | Registrar y editar clientes | `ventas.gestionar_clientes` | ✔ |  | ✔ |  |  | ✔ |  |
+| Clientes y recetas | Registrar recetas de los clientes | `ventas.registrar_receta` | ✔ |  | ✔ |  |  | ✔ |  |
+| Clientes y recetas | Realizar exámenes visuales (figurar como óptico responsable) | `ventas.realizar_examen` | ✔ |  |  |  |  | ✔ |  |
+| Órdenes de trabajo | Consultar las órdenes de trabajo | `ventas.ver_ordenes` | ✔ | ✔ | ✔ |  |  | ✔ |  |
+| Órdenes de trabajo | Pasar las órdenes al taller y marcarlas como listas | `ventas.actualizar_ordenes` | ✔ |  |  |  |  | ✔ |  |
+| Órdenes de trabajo | Entregar los trabajos al cliente | `ventas.entregar_ordenes` | ✔ |  | ✔ |  |  | ✔ |  |
+| Órdenes de trabajo | Autorizar la entrega de un trabajo con saldo pendiente | `ventas.autorizar_entrega_con_saldo` | ✔ | ✔ |  |  |  |  |  |
 | Asistencia | Marcar su entrada/salida y ver su historial | `asistencia.marcar_asistencia` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | Asistencia | Ver la asistencia de todo el personal | `asistencia.ver_todas_marcaciones` | ✔ | ✔ |  | ✔ |  |  |  |
 
-- Los tres roles mínimos del enunciado son **Administrador**, **Cajero/Vendedor** y **Empleado**. Los otros cuatro provienen del documento de visión y reciben permisos propios a medida que se implementan sus módulos: el Encargado de almacén ya tiene los de inventario, y el Óptico/Técnico de taller tendrá los de órdenes de trabajo.
+- Los tres roles mínimos del enunciado son **Administrador**, **Cajero/Vendedor** y **Empleado**. Los otros cuatro provienen del documento de visión y reciben permisos propios a medida que se implementan sus módulos: el Encargado de almacén tiene los de inventario y el Óptico/Técnico de taller los de recetas y órdenes de trabajo.
 - El Cajero/Vendedor también marca su propia asistencia, porque es parte del personal. Además de Ventas y Caja, consulta el catálogo (precios y stock) y confirma la recepción de los traspasos que llegan a su sucursal, pero no ve costos.
 
 ## 4. Cumplimiento del enunciado

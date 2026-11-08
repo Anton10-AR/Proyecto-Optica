@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import RegistroActividad, Sucursal, Usuario
+from .models import Configuracion, RegistroActividad, Sucursal, Usuario
 
 
 @admin.register(Usuario)
@@ -29,6 +29,17 @@ class RegistroActividadAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Configuracion)
+class ConfiguracionAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'anticipo_minimo_porcentaje')
+
+    def has_add_permission(self, request):
+        return not Configuracion.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False

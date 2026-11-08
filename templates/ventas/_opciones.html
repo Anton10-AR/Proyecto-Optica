@@ -1,0 +1,2 @@
+{% comment %}Opciones de un select. La primera receta (la más reciente) queda elegida.{% endcomment %}
+{% for valor, texto in opciones %}<option value="{{ valor }}" {% if forloop.counter == 2 %}selected{% endif %}>{{ texto }}</option>{% endfor %}

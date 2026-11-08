@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Clientes · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-person-vcard"></i>Clientes y recetas</h1>
+    <p>Datos de los clientes y el historial de sus recetas.</p>
+  </div>
+  {% if perms.ventas.gestionar_clientes %}<a class="btn btn-primary" href="{% url 'cliente_crear' %}"><i class="bi bi-plus-lg me-1"></i>Nuevo cliente</a>{% endif %}
+</div>
+<form method="get" class="card card-body mb-3">
+  <div class="input-group">
+    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+    <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Nombre, CI/NIT o teléfono" aria-label="Buscar" autofocus>
+    <button class="btn btn-outline-secondary">Buscar</button>
+  </div>
+</form>
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+  <thead><tr><th>Cliente</th><th>CI/NIT</th><th>Teléfono</th><th class="text-end">Recetas</th><th></th></tr></thead>
+  <tbody>
+  {% for c in pagina %}
+    <tr>
+      <td><a class="fw-medium" href="{% url 'cliente_detalle' c.pk %}">{{ c.nombre }}</a></td>
+      <td>{{ c.ci_nit|default:"—" }}</td>
+      <td>{{ c.telefono|default:"—" }}</td>
+      <td class="text-end">{{ c.cantidad_recetas }}</td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'cliente_detalle' c.pk %}"><i class="bi bi-eye"></i><span class="visually-hidden">Ver</span></a></td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5" class="text-center text-muted py-5"><i class="bi bi-person-vcard d-block fs-3 mb-2"></i>{% if q %}Ningún cliente coincide con «{{ q }}».{% else %}Aún no hay clientes registrados.{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% include 'inventario/_paginacion.html' with singular='cliente' plural='clientes' %}
+{% endblock %}

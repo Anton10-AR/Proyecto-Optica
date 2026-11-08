@@ -29,12 +29,17 @@
         <li class="nav-item">
           <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'inicio' %}"><i class="bi bi-house-door me-1"></i>Inicio</a>
         </li>
-        {% if perms.ventas.registrar_venta or perms.ventas.ver_todas_ventas %}
+        {% if perms.ventas.registrar_venta or perms.ventas.ver_todas_ventas or perms.ventas.ver_ordenes or perms.ventas.gestionar_clientes %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if '/ventas/' in request.path %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-receipt me-1"></i>Ventas</a>
           <ul class="dropdown-menu">
             {% if perms.ventas.registrar_venta %}<li><a class="dropdown-item" href="{% url 'venta_crear' %}"><i class="bi bi-plus-circle"></i>Nueva venta</a></li>{% endif %}
-            <li><a class="dropdown-item" href="{% url 'venta_lista' %}"><i class="bi bi-list-ul"></i>{% if perms.ventas.ver_todas_ventas %}Todas las ventas{% else %}Mis ventas{% endif %}</a></li>
+            {% if perms.ventas.registrar_venta or perms.ventas.ver_todas_ventas %}<li><a class="dropdown-item" href="{% url 'venta_lista' %}"><i class="bi bi-list-ul"></i>{% if perms.ventas.ver_todas_ventas %}Todas las ventas{% else %}Mis ventas{% endif %}</a></li>{% endif %}
+            {% if perms.ventas.ver_ordenes %}<li><a class="dropdown-item" href="{% url 'orden_lista' %}"><i class="bi bi-tools"></i>Órdenes de trabajo</a></li>{% endif %}
+            {% if perms.ventas.gestionar_clientes or perms.ventas.registrar_receta or perms.ventas.ver_todas_ventas or perms.ventas.ver_ordenes %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'cliente_lista' %}"><i class="bi bi-person-vcard"></i>Clientes y recetas</a></li>
+            {% endif %}
           </ul>
         </li>
         {% endif %}
@@ -79,13 +84,14 @@
           </ul>
         </li>
         {% endif %}
-        {% if perms.core.view_usuario or perms.core.view_sucursal or perms.core.view_registroactividad %}
+        {% if perms.core.view_usuario or perms.core.view_sucursal or perms.core.view_registroactividad or perms.core.change_configuracion %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if '/administracion/' in request.path %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-gear me-1"></i>Administración</a>
           <ul class="dropdown-menu">
             {% if perms.core.view_usuario %}<li><a class="dropdown-item" href="{% url 'usuario_lista' %}"><i class="bi bi-person-badge"></i>Usuarios</a></li>{% endif %}
             {% if perms.core.view_sucursal %}<li><a class="dropdown-item" href="{% url 'sucursal_lista' %}"><i class="bi bi-shop"></i>Sucursales</a></li>{% endif %}
             {% if perms.core.view_registroactividad %}<li><a class="dropdown-item" href="{% url 'actividad_lista' %}"><i class="bi bi-shield-check"></i>Registro de actividad</a></li>{% endif %}
+            {% if perms.core.change_configuracion %}<li><a class="dropdown-item" href="{% url 'parametros' %}"><i class="bi bi-sliders"></i>Parámetros</a></li>{% endif %}
           </ul>
         </li>
         {% endif %}

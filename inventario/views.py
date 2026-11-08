@@ -1,11 +1,10 @@
 import csv
 from decimal import Decimal
-from functools import wraps
 from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
@@ -17,7 +16,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, ListView, UpdateView
 
 from core.models import Sucursal
-from core.views import PermisoMixin
+from core.views import PermisoMixin, requiere_alguno
 
 from . import reportes, servicios
 from .forms import (
@@ -36,19 +35,6 @@ class MensajeGuardadoMixin:
         respuesta = super().form_valid(form)
         messages.success(self.request, self.mensaje.format(objeto=self.object))
         return respuesta
-
-
-def requiere_alguno(*permisos):
-    """Como permission_required, pero basta con tener uno de los permisos."""
-    def decorador(vista):
-        @login_required
-        @wraps(vista)
-        def envoltura(request, *args, **kwargs):
-            if not any(request.user.has_perm(p) for p in permisos):
-                raise PermissionDenied
-            return vista(request, *args, **kwargs)
-        return envoltura
-    return decorador
 
 
 def _con_servicio(form, operacion):

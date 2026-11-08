@@ -38,7 +38,7 @@ El turquesa claro `#2A9D8F` no tiene contraste suficiente con texto blanco (WCAG
 | `.oc-encabezado` | Encabezado de cada pantalla: ícono, título, descripción y acción principal |
 | `.oc-indicador` | Tarjeta de cifra con ícono, por ejemplo en el inicio o el arqueo de caja |
 | `.oc-acceso` | Tarjeta de acceso rápido que se eleva al pasar el cursor |
-| `.oc-estado-ok`, `-aviso`, `-peligro`, `-inactivo` | Insignias de estado con punto de color |
+| `.oc-estado-ok`, `-aviso`, `-peligro`, `-info`, `-inactivo` | Insignias de estado con punto de color |
 | `.btn-acento` | Botón turquesa para acciones secundarias destacadas, como marcar la salida |
 | `.oc-marcar`, `.oc-reloj` | Botón grande y reloj de la pantalla de marcación |
 

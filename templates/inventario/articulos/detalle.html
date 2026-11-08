@@ -27,6 +27,7 @@
           <dt class="col-sm-5 text-muted fw-medium">Marca</dt><dd class="col-sm-7">{{ articulo.marca|default:"—" }}</dd>
           <dt class="col-sm-5 text-muted fw-medium">Proveedor habitual</dt><dd class="col-sm-7">{{ articulo.proveedor|default:"—" }}</dd>
           <dt class="col-sm-5 text-muted fw-medium">Precio de venta</dt><dd class="col-sm-7 fw-semibold text-primary">Bs {{ articulo.precio_venta }}</dd>
+          {% if articulo.requiere_receta %}<dt class="col-sm-5 text-muted fw-medium">Lente graduado</dt><dd class="col-sm-7">Exige receta y genera orden de trabajo</dd>{% endif %}
           {% if articulo.controla_stock %}
           {% if perms.inventario.ver_kardex %}<dt class="col-sm-5 text-muted fw-medium">Costo promedio</dt><dd class="col-sm-7">Bs {{ articulo.costo_promedio|floatformat:2 }}</dd>{% endif %}
           <dt class="col-sm-5 text-muted fw-medium">Stock mínimo</dt><dd class="col-sm-7 mb-0">{{ articulo.stock_minimo }} por sucursal</dd>

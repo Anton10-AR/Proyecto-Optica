@@ -157,6 +157,7 @@ h1, h2, h3, .h1, .h2, .h3, .h4, .h5 { color: var(--oc-petroleo); font-weight: 60
 .oc-estado-inactivo { background: #ECEFF1; color: var(--oc-texto-suave); }
 .oc-estado-aviso { background: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis); }
 .oc-estado-peligro { background: var(--bs-danger-bg-subtle); color: var(--bs-danger-text-emphasis); }
+.oc-estado-info { background: var(--bs-info-bg-subtle); color: var(--bs-info-text-emphasis); }
 
 /* Alertas */
 .alert { border-width: 0 0 0 4px; border-left-style: solid; }
@@ -189,3 +190,7 @@ h1, h2, h3, .h1, .h2, .h3, .h4, .h5 { color: var(--oc-petroleo); font-weight: 60
 
 /* ---------- Pie ---------- */
 .oc-pie { color: var(--oc-texto-suave); font-size: .8rem; }
+
+/* Pestañas de filtro (por ejemplo, estados de las órdenes de trabajo) con la paleta propia. */
+.nav-pills .nav-link { color: var(--oc-petroleo); }
+.nav-pills .nav-link.active { background: var(--oc-petroleo); color: #fff; }

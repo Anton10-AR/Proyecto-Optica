@@ -22,6 +22,7 @@
         {% else %}
         <li>La venta no tiene pagos, así que no hay nada que devolver.</li>
         {% endif %}
+        {% if orden %}<li>La <strong>orden de trabajo {{ orden.numero }}</strong> ({{ orden.get_estado_display|lower }}) queda anulada: avise al taller.</li>{% endif %}
         <li>La anulación no se puede deshacer.</li>
       </ul>
       {% if venta.total_pagado and not tiene_caja %}

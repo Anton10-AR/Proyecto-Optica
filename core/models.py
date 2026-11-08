@@ -123,3 +123,28 @@ class RegistroActividad(models.Model):
 
     def __str__(self):
         return f'{self.fecha:%d/%m/%Y %H:%M} · {self.get_accion_display()}'
+
+
+class Configuracion(models.Model):
+    """Parámetros del negocio que define el gerente. Hay una sola fila (pk=1); se obtiene con `actual()`."""
+
+    anticipo_minimo_porcentaje = models.PositiveSmallIntegerField(
+        'anticipo mínimo para lentes graduados (%)', default=50,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text='Porcentaje del total que debe pagarse al registrar una venta con lentes graduados.',
+    )
+
+    class Meta:
+        verbose_name = 'parámetros del sistema'
+        verbose_name_plural = 'parámetros del sistema'
+
+    def __str__(self):
+        return 'Parámetros del sistema'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def actual(cls):
+        return cls.objects.get_or_create(pk=1)[0]

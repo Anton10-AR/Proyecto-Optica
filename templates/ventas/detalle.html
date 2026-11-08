@@ -30,11 +30,18 @@
       <div class="card-body">
         <dl class="row mb-0">
           <dt class="col-sm-4 text-muted fw-medium">Vendedor</dt><dd class="col-sm-8">{{ venta.vendedor }} <span class="text-muted small">(ID {{ venta.vendedor_id }})</span></dd>
-          <dt class="col-sm-4 text-muted fw-medium">Cliente</dt><dd class="col-sm-8">{{ venta.cliente_nombre }}{% if venta.cliente_ci %} · CI/NIT {{ venta.cliente_ci }}{% endif %}</dd>
+          <dt class="col-sm-4 text-muted fw-medium">Cliente</dt><dd class="col-sm-8">{% if venta.cliente %}<a href="{% url 'cliente_detalle' venta.cliente.pk %}">{{ venta.cliente_nombre }}</a>{% else %}{{ venta.cliente_nombre }} <span class="text-muted small">(ocasional)</span>{% endif %}{% if venta.cliente_ci %} · CI/NIT {{ venta.cliente_ci }}{% endif %}</dd>
           {% if venta.descripcion %}<dt class="col-sm-4 text-muted fw-medium">{% if detalles %}Observación{% else %}Descripción{% endif %}</dt><dd class="col-sm-8 mb-0">{{ venta.descripcion }}</dd>{% endif %}
         </dl>
       </div>
     </div>
+    {% if orden %}
+    <div class="card card-body mb-4 d-flex flex-row flex-wrap justify-content-between align-items-center gap-2">
+      <div><i class="bi bi-tools me-1 text-info"></i>{% if perms.ventas.ver_ordenes %}<a class="fw-medium" href="{% url 'orden_detalle' orden.pk %}">Orden de trabajo {{ orden.numero }}</a>{% else %}<span class="fw-medium">Orden de trabajo {{ orden.numero }}</span>{% endif %}
+        {% if orden.fecha_prometida %}<span class="small text-muted"> · entrega prometida el {{ orden.fecha_prometida|date:"d/m/Y" }}</span>{% endif %}</div>
+      {% include 'ventas/ordenes/_estado.html' %}
+    </div>
+    {% endif %}
     {% if detalles %}
     <div class="card mb-4">
       <div class="card-header"><i class="bi bi-box-seam me-1 text-info"></i>Artículos</div>

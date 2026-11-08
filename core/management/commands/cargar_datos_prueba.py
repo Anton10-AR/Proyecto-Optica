@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import Group
@@ -12,7 +12,7 @@ from core import roles
 from core.models import Sucursal, Usuario
 from inventario import servicios as inventario
 from inventario.models import Ajuste, Articulo, Categoria, Movimiento, Proveedor
-from ventas.models import DetalleVenta, Pago, Venta
+from ventas.models import Cliente, DetalleVenta, EventoOrden, OrdenTrabajo, Pago, Receta, Venta
 
 CLAVE_PRUEBA = 'Casimiro2026!'
 
@@ -66,6 +66,17 @@ ARTICULOS = [
 ]
 
 
+# Lunas que se tallan según la receta: su venta exige receta, anticipo mínimo y genera una orden de trabajo.
+LENTES_GRADUADOS = {'LUN-001', 'LUN-002'}
+
+# nombre, CI/NIT, teléfono, fecha de nacimiento (año, mes, día)
+CLIENTES = [
+    ('María Fernanda López Rojas', '5555555', '71234567', (1990, 4, 12)),
+    ('Carlos Andrés Vargas Soliz', '6666601', '72345678', (1968, 9, 3)),
+    ('Rosa Elena Quiroga Mendoza', '7777702', '', None),
+]
+
+
 class Command(BaseCommand):
     help = 'Crea roles, sucursales, usuarios de cada rol y operaciones de ejemplo para demostraciones.'
 
@@ -92,6 +103,7 @@ class Command(BaseCommand):
 
         self._catalogo()
         self._inventario_inicial(usuarios, sucursales)
+        self._clientes(usuarios)
         self._operaciones_de_ejemplo(usuarios)
 
         self.stdout.write(self.style.SUCCESS(
@@ -114,7 +126,39 @@ class Command(BaseCommand):
                 'codigo_barras': barras, 'nombre': nombre, 'categoria': categorias[categoria], 'marca': marca,
                 'proveedor': proveedores[proveedor] if proveedor is not None else None,
                 'precio_venta': Decimal(precio), 'stock_minimo': minimo, 'controla_stock': controla, 'activo': True,
+                'requiere_receta': codigo in LENTES_GRADUADOS,
             })
+
+    def _clientes(self, usuarios):
+        """Clientes con su historial de recetas: una de examen en la óptica y una externa (RF21, RF22)."""
+        clientes = [
+            Cliente.objects.update_or_create(ci_nit=ci, defaults={
+                'nombre': nombre, 'telefono': telefono,
+                'fecha_nacimiento': date(*nacimiento) if nacimiento else None,
+            })[0]
+            for nombre, ci, telefono, nacimiento in CLIENTES
+        ]
+        if Receta.objects.exists():
+            return
+        maria, carlos, _ = clientes
+        optico, cajero = usuarios['optico'], usuarios['cajero1']
+        hoy = timezone.localdate()
+        # La receta anterior de María, de hace un año, muestra que el historial guarda cada graduación.
+        Receta.objects.create(
+            cliente=maria, fecha=hoy - timedelta(days=380), origen=Receta.Origen.EXAMEN, optico=optico,
+            od_esfera=Decimal('-1.00'), od_cilindro=Decimal('-0.25'), od_eje=180,
+            oi_esfera=Decimal('-0.75'), distancia_pupilar=Decimal('62'), registrado_por=optico)
+        Receta.objects.create(
+            cliente=maria, fecha=hoy - timedelta(days=2), origen=Receta.Origen.EXAMEN, optico=optico,
+            od_esfera=Decimal('-1.25'), od_cilindro=Decimal('-0.50'), od_eje=180,
+            oi_esfera=Decimal('-1.00'), oi_cilindro=Decimal('-0.25'), oi_eje=170,
+            distancia_pupilar=Decimal('62'), observaciones='Uso permanente. Control en un año.', registrado_por=optico)
+        Receta.objects.create(
+            cliente=carlos, fecha=hoy - timedelta(days=10), origen=Receta.Origen.EXTERNA,
+            medico='Dr. Mario Salinas · Clínica Oftalmológica Sucre',
+            od_esfera=Decimal('1.50'), od_adicion=Decimal('2.00'), oi_esfera=Decimal('1.75'), oi_adicion=Decimal('2.00'),
+            distancia_pupilar=Decimal('64'), observaciones='Presbicia. Sugiere lentes progresivos.',
+            registrado_por=cajero)
 
     def _inventario_inicial(self, usuarios, sucursales):
         """Compras, traspasos y una baja hechos con los servicios, para que el kardex y el stock tengan datos."""
@@ -157,10 +201,12 @@ class Command(BaseCommand):
 
         sesion = SesionCaja.objects.create(usuario=cajero, sucursal=cajero.sucursal, monto_inicial=Decimal('200'))
         # Armazón (350) + 2 lunas (2 × 180) = 710, con un descuento de 60: total 650, anticipo 350, saldo 300.
+        # Las lunas son lentes graduados: la venta lleva la receta de la clienta y una orden de trabajo.
         armazon, luna = Articulo.objects.get(codigo='ARM-001'), Articulo.objects.get(codigo='LUN-001')
+        clienta = Cliente.objects.get(ci_nit=CLIENTES[0][1])
         venta = Venta.objects.create(
-            vendedor=cajero, sucursal=cajero.sucursal, cliente_nombre='Cliente de prueba', cliente_ci='5555555',
-            descuento=Decimal('60'), total=Decimal('650'),
+            vendedor=cajero, sucursal=cajero.sucursal, cliente=clienta, cliente_nombre=clienta.nombre,
+            cliente_ci=clienta.ci_nit, descuento=Decimal('60'), total=Decimal('650'),
         )
         salidas = inventario.registrar_salida_venta(cajero, cajero.sucursal, [(armazon, 1), (luna, 2)], str(venta))
         DetalleVenta.objects.bulk_create([
@@ -184,6 +230,20 @@ class Command(BaseCommand):
         Venta.objects.filter(pk=venta.pk).update(fecha=a_las(10, 15))
         MovimientoCaja.objects.filter(pk=movimiento.pk).update(fecha=a_las(10, 15))
         Pago.objects.filter(pk=pago.pk).update(fecha=a_las(10, 15))
+
+        # La orden ya está lista, pero la venta tiene saldo: sirve para demostrar que la entrega exige cobrar el
+        # saldo o la autorización del gerente (RF31).
+        orden = OrdenTrabajo.objects.create(venta=venta, receta=clienta.recetas.first(),
+                                            fecha_prometida=timezone.localdate() + timedelta(days=1),
+                                            estado=OrdenTrabajo.Estado.LISTO)
+        OrdenTrabajo.objects.filter(pk=orden.pk).update(fecha=a_las(10, 15))
+        optico = usuarios['optico']
+        for estado, usuario, hora, nota in (
+                (OrdenTrabajo.Estado.PENDIENTE, cajero, (10, 15), f'Generada con la {venta}.'),
+                (OrdenTrabajo.Estado.EN_TALLER, optico, (11, 0), ''),
+                (OrdenTrabajo.Estado.LISTO, optico, (17, 40), 'Lunas talladas y montadas.')):
+            evento = EventoOrden.objects.create(orden=orden, estado=estado, usuario=usuario, nota=nota)
+            EventoOrden.objects.filter(pk=evento.pk).update(fecha=a_las(*hora))
 
         sucursal = empleado.sucursal
         for tipo, hora in ((Marcacion.Tipo.ENTRADA, 8), (Marcacion.Tipo.SALIDA, 12),

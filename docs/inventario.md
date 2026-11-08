@@ -103,6 +103,7 @@ erDiagram
         decimal costo_promedio "Único por artículo"
         int stock_minimo
         bool controla_stock "Falso en servicios"
+        bool requiere_receta "Lente graduado: exige receta y genera orden de trabajo"
         bool activo
     }
     inventario_existencia {

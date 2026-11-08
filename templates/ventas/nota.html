@@ -64,6 +64,7 @@
     </tfoot>
   </table>
   {% if detalles and venta.descripcion %}<p class="small"><span class="text-muted">Observación:</span> {{ venta.descripcion }}</p>{% endif %}
+  {% if orden %}<p class="small"><span class="text-muted">Orden de trabajo:</span> N.º {{ orden.numero }}{% if orden.fecha_prometida %} · <span class="text-muted">entrega prometida:</span> {{ orden.fecha_prometida|date:"d/m/Y" }}{% endif %}. Presente esta nota para recoger su trabajo.</p>{% endif %}
   <p class="text-center small text-muted mt-5">Gracias por su preferencia · Cuidando cada detalle de tu visión</p>
   <div class="no-print d-flex gap-2 justify-content-center mt-4">
     <button class="btn btn-primary" onclick="window.print()">Imprimir</button>

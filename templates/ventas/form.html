@@ -12,15 +12,20 @@
   {% if form.non_field_errors %}
   <div class="alert alert-danger d-flex gap-2"><i class="bi bi-exclamation-octagon-fill mt-1"></i><div>{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div></div>
   {% endif %}
-  <h2 class="h6 text-muted text-uppercase mb-2">Cliente</h2>
+  <div class="d-flex justify-content-between align-items-baseline">
+    <h2 class="h6 text-muted text-uppercase mb-2">Cliente</h2>
+    {% if perms.ventas.gestionar_clientes %}<a class="small" href="{% url 'cliente_crear' %}" target="_blank"><i class="bi bi-person-plus me-1"></i>Registrar un cliente nuevo</a>{% endif %}
+  </div>
   <div class="row g-3 mb-3">
-    {% for campo in form %}{% if campo.name == 'cliente_nombre' or campo.name == 'cliente_ci' %}
-    <div class="col-md-6">{% include '_campo.html' %}</div>
-    {% endif %}{% endfor %}
+    <div class="col-md-6">{% with campo=form.cliente %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-3" data-ocasional>{% with campo=form.cliente_nombre %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-3" data-ocasional>{% with campo=form.cliente_ci %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-4" data-registrado>{% with campo=form.receta %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-2" data-registrado>{% with campo=form.fecha_prometida %}{% include '_campo.html' %}{% endwith %}</div>
   </div>
   <h2 class="h6 text-muted text-uppercase mb-2">Artículos y servicios</h2>
   {% include 'inventario/_lineas.html' %}
-  <p class="small text-muted mt-n2 mb-3">El precio es el del catálogo. El stock se descuenta de {{ user.sucursal }} al registrar la venta.</p>
+  <p class="small text-muted mt-n2 mb-3">El precio es el del catálogo. El stock se descuenta de {{ user.sucursal }} al registrar la venta. Los artículos «con receta» son lentes graduados: exigen un cliente registrado con su receta, un anticipo de al menos el {{ anticipo_porcentaje }} % y generan una orden de trabajo para el taller.</p>
   <h2 class="h6 text-muted text-uppercase mb-2">Total y pago</h2>
   <div class="row g-3">
     <div class="col-lg-5">
@@ -30,43 +35,61 @@
           <dt class="col-6 fw-normal text-muted">Descuento</dt><dd class="col-6 text-end mb-1">− Bs <span id="descuento">0,00</span></dd>
           <dt class="col-6 fs-5">Total</dt><dd class="col-6 text-end fs-5 fw-semibold text-primary mb-0">Bs <span id="total">0,00</span></dd>
         </dl>
+        <div class="small text-warning-emphasis mt-2 d-none" id="aviso-anticipo"><i class="bi bi-eyeglasses me-1"></i>Lentes graduados: anticipo mínimo de Bs <span id="anticipo">0,00</span> ({{ anticipo_porcentaje }} %).</div>
       </div>
     </div>
     <div class="col-lg-7">
       <div class="row g-3">
-        {% for campo in form %}{% if campo.name != 'cliente_nombre' and campo.name != 'cliente_ci' %}
-        <div class="{% if campo.name == 'observacion' %}col-12{% else %}col-md-4{% endif %}">{% include '_campo.html' %}</div>
-        {% endif %}{% endfor %}
+        <div class="col-md-4">{% with campo=form.descuento %}{% include '_campo.html' %}{% endwith %}</div>
+        <div class="col-md-4">{% with campo=form.monto_pago %}{% include '_campo.html' %}{% endwith %}</div>
+        <div class="col-md-4">{% with campo=form.forma_pago %}{% include '_campo.html' %}{% endwith %}</div>
+        <div class="col-12">{% with campo=form.observacion %}{% include '_campo.html' %}{% endwith %}</div>
       </div>
     </div>
   </div>
-  <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>El pago se registra en su caja abierta. Si el cliente deja un anticipo, el saldo se cobra después desde el detalle de la venta.</p>
+  <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>El pago se registra en su caja abierta. Si el cliente deja un anticipo, el saldo se cobra después desde el detalle de la venta o de la orden de trabajo.</p>
   <div class="d-flex gap-2 border-top pt-3 mt-3">
     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Registrar venta</button>
     <a class="btn btn-outline-secondary" href="{% url 'venta_lista' %}">Cancelar</a>
   </div>
 </form>
 {{ precios|json_script:"precios" }}
+{{ con_receta|json_script:"con-receta" }}
 <script>
 (() => {
   const precios = JSON.parse(document.getElementById('precios').textContent);
+  const conReceta = new Set(JSON.parse(document.getElementById('con-receta').textContent));
+  const porcentaje = {{ anticipo_porcentaje }};
   const form = document.getElementById('form-venta');
+  const cliente = document.getElementById('id_cliente');
   const formato = n => n.toLocaleString('es-BO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   const numero = v => parseFloat(String(v || '').replace(',', '.')) || 0;
   function recalcular() {
-    let subtotal = 0;
+    let subtotal = 0, graduados = false;
     form.querySelectorAll('select[name$="-articulo"]').forEach(select => {
       const cantidad = form.querySelector(`[name="${select.name.replace('-articulo', '-cantidad')}"]`);
       subtotal += numero(precios[select.value]) * numero(cantidad && cantidad.value);
+      graduados = graduados || conReceta.has(select.value);
     });
     const descuento = numero(form.querySelector('[name="descuento"]').value);
+    const total = Math.max(subtotal - descuento, 0);
     document.getElementById('subtotal').textContent = formato(subtotal);
     document.getElementById('descuento').textContent = formato(descuento);
-    document.getElementById('total').textContent = formato(Math.max(subtotal - descuento, 0));
+    document.getElementById('total').textContent = formato(total);
+    document.getElementById('anticipo').textContent = formato(Math.ceil(total * porcentaje) / 100);
+    document.getElementById('aviso-anticipo').classList.toggle('d-none', !graduados);
+  }
+  function mostrarCliente() {
+    // Con cliente registrado se elige su receta; sin él, se escribe el nombre del cliente ocasional.
+    const registrado = Boolean(cliente.value);
+    form.querySelectorAll('[data-ocasional]').forEach(b => b.classList.toggle('d-none', registrado));
+    form.querySelectorAll('[data-registrado]').forEach(b => b.classList.toggle('d-none', !registrado));
   }
   form.addEventListener('input', recalcular);
   form.addEventListener('change', recalcular);
+  cliente.addEventListener('change', mostrarCliente);
   recalcular();
+  mostrarCliente();
 })();
 </script>
 {% endblock %}

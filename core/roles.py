@@ -29,6 +29,9 @@ PERMISOS = {
         'core.add_sucursal': 'Crear sucursales',
         'core.change_sucursal': 'Editar sucursales',
     },
+    'Parámetros': {
+        'core.change_configuracion': 'Definir los parámetros del negocio (anticipo mínimo)',
+    },
     'Inventario': {
         'inventario.ver_articulos': 'Consultar artículos, precios y stock por sucursal',
         'inventario.gestionar_catalogo': 'Crear y editar artículos y categorías',
@@ -47,6 +50,17 @@ PERMISOS = {
         'ventas.registrar_venta': 'Registrar ventas y cobrar pagos',
         'ventas.ver_todas_ventas': 'Ver las ventas de todos los vendedores',
         'ventas.anular_venta': 'Anular ventas (repone el stock y devuelve lo pagado desde su caja)',
+    },
+    'Clientes y recetas': {
+        'ventas.gestionar_clientes': 'Registrar y editar clientes',
+        'ventas.registrar_receta': 'Registrar recetas de los clientes',
+        'ventas.realizar_examen': 'Realizar exámenes visuales (figurar como óptico responsable)',
+    },
+    'Órdenes de trabajo': {
+        'ventas.ver_ordenes': 'Consultar las órdenes de trabajo',
+        'ventas.actualizar_ordenes': 'Pasar las órdenes al taller y marcarlas como listas',
+        'ventas.entregar_ordenes': 'Entregar los trabajos al cliente',
+        'ventas.autorizar_entrega_con_saldo': 'Autorizar la entrega de un trabajo con saldo pendiente',
     },
     'Asistencia': {
         'asistencia.marcar_asistencia': 'Marcar su entrada/salida y ver su historial',
@@ -67,6 +81,9 @@ ROLES = {
         'caja.ver_todas_cajas',
         'ventas.ver_todas_ventas',
         'ventas.anular_venta',
+        'ventas.ver_ordenes',
+        'ventas.autorizar_entrega_con_saldo',
+        'core.change_configuracion',
         'asistencia.marcar_asistencia',
         'asistencia.ver_todas_marcaciones',
     ],
@@ -75,6 +92,10 @@ ROLES = {
         'inventario.recibir_traspasos',
         'caja.operar_caja',
         'ventas.registrar_venta',
+        'ventas.gestionar_clientes',
+        'ventas.registrar_receta',
+        'ventas.ver_ordenes',
+        'ventas.entregar_ordenes',
         'asistencia.marcar_asistencia',
     ],
     RRHH: [
@@ -96,6 +117,12 @@ ROLES = {
     ],
     OPTICO: [
         'inventario.ver_articulos',
+        'ventas.gestionar_clientes',
+        'ventas.registrar_receta',
+        'ventas.realizar_examen',
+        'ventas.ver_ordenes',
+        'ventas.actualizar_ordenes',
+        'ventas.entregar_ordenes',
         'asistencia.marcar_asistencia',
     ],
     EMPLEADO: [

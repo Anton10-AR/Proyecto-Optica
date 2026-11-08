@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load optica %}
+{% block title %}{{ cliente }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'cliente_lista' %}">Clientes</a></li>
+  <li class="breadcrumb-item active">{{ cliente }}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-person-vcard"></i>{{ cliente }}</h1>
+    <p>{% if cliente.ci_nit %}CI/NIT {{ cliente.ci_nit }}{% else %}Sin CI/NIT{% endif %}{% if cliente.edad is not None %} · {{ cliente.edad }} años{% endif %}</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    {% if perms.ventas.gestionar_clientes %}<a class="btn btn-outline-secondary" href="{% url 'cliente_editar' cliente.pk %}"><i class="bi bi-pencil me-1"></i>Editar</a>{% endif %}
+    {% if perms.ventas.registrar_receta %}<a class="btn btn-outline-primary" href="{% url 'receta_crear' cliente.pk %}"><i class="bi bi-eyeglasses me-1"></i>Nueva receta</a>{% endif %}
+    {% if perms.ventas.registrar_venta %}<a class="btn btn-primary" href="{% url 'venta_crear' %}?cliente={{ cliente.pk }}"><i class="bi bi-plus-circle me-1"></i>Nueva venta</a>{% endif %}
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-body">
+        <dl class="mb-0">
+          <dt class="text-muted fw-medium">Teléfono</dt><dd>{{ cliente.telefono|default:"—" }}</dd>
+          <dt class="text-muted fw-medium">Correo</dt><dd>{{ cliente.correo|default:"—" }}</dd>
+          <dt class="text-muted fw-medium">Fecha de nacimiento</dt><dd>{{ cliente.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</dd>
+          <dt class="text-muted fw-medium">Dirección</dt><dd class="mb-0">{{ cliente.direccion|default:"—" }}</dd>
+        </dl>
+      </div>
+    </div>
+    {% if ordenes %}
+    <div class="card">
+      <div class="card-header"><i class="bi bi-tools me-1 text-info"></i>Órdenes de trabajo</div>
+      <ul class="list-group list-group-flush">
+        {% for o in ordenes %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {% if perms.ventas.ver_ordenes %}<a href="{% url 'orden_detalle' o.pk %}">N.º {{ o.numero }}</a>{% else %}N.º {{ o.numero }}{% endif %}
+          {% include 'ventas/ordenes/_estado.html' with orden=o %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-lg-8">
+    <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">Historial de recetas</h2>
+    {% for r in recetas %}
+    <div class="card mb-3">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span><a class="fw-semibold" href="{% url 'receta_detalle' r.pk %}">{{ r.fecha|date:"d/m/Y" }}</a>
+          · {{ r.get_origen_display }} · {{ r.responsable }}</span>
+        {% if forloop.first %}<span class="oc-estado oc-estado-ok">Más reciente</span>{% endif %}
+      </div>
+      <div class="card-body">
+        {% include 'ventas/recetas/_graduacion.html' with receta=r %}
+        {% if r.observaciones %}<p class="small text-muted mt-2 mb-0">{{ r.observaciones }}</p>{% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="card card-body text-center text-muted py-5"><i class="bi bi-eyeglasses d-block fs-3 mb-2"></i>Este cliente aún no tiene recetas.</div>
+    {% endfor %}
+    {% if ventas %}
+    <h2 class="h6 text-uppercase text-muted fw-semibold mt-4 mb-3">Compras{% if not perms.ventas.ver_todas_ventas %} registradas por usted{% endif %}</h2>
+    <div class="card">
+      <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>N.º</th><th>Fecha</th><th>Sucursal</th><th class="text-end">Total</th><th class="text-end">Saldo</th></tr></thead>
+        <tbody>
+        {% for v in ventas %}
+          <tr><td><a href="{% url 'venta_detalle' v.pk %}">{{ v.numero }}</a></td><td>{{ v.fecha|date:"d/m/Y" }}</td><td>{{ v.sucursal }}</td>
+            <td class="text-end">Bs {{ v.total|floatformat:"2g" }}</td>
+            <td class="text-end">{% if v.estado == 'ANULADA' %}<span class="oc-estado oc-estado-inactivo">Anulada</span>{% elif v.saldo > 0 %}Bs {{ v.saldo|floatformat:"2g" }}{% else %}<span class="oc-estado oc-estado-ok">Pagado</span>{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

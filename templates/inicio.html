@@ -73,6 +73,20 @@
     </a>
   </div>
   {% endif %}
+  {% if ordenes %}
+  <div class="col-sm-6 col-xl-3">
+    <a class="card card-body h-100 oc-acceso" href="{% url 'orden_lista' %}">
+      <div class="oc-indicador">
+        <span class="oc-icono"><i class="bi bi-tools"></i></span>
+        <div>
+          <div class="oc-etiqueta">Órdenes de trabajo</div>
+          <div class="oc-valor">{{ ordenes.en_curso }} en curso</div>
+          <div class="small text-muted">{{ ordenes.listas }} lista{{ ordenes.listas|pluralize }} para entregar</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
   {% if alertas_stock %}
   <div class="col-sm-6 col-xl-3">
     <a class="card card-body h-100 oc-acceso" href="{% url 'alertas_stock' %}?sucursal={% if alertas_stock.sucursal %}{{ alertas_stock.sucursal.pk }}{% else %}todas{% endif %}">

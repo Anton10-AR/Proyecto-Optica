@@ -3,7 +3,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.models import Group
 
-from .models import Sucursal, Usuario
+from .models import Configuracion, Sucursal, Usuario
 
 
 class BootstrapMixin:
@@ -134,3 +134,9 @@ class SucursalForm(BootstrapMixin, forms.ModelForm):
             'latitud': 'Por ejemplo, -19.047500. Se obtiene con clic derecho sobre el lugar en Google Maps.',
             'longitud': 'Por ejemplo, -65.259300.',
         }
+
+
+class ConfiguracionForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Configuracion
+        fields = ['anticipo_minimo_porcentaje']

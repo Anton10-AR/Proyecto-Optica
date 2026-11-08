@@ -8,16 +8,16 @@ from django.db import transaction
 
 from asistencia.models import Marcacion
 from caja.models import MovimientoCaja, SesionCaja
-from core.models import RegistroActividad, Sucursal, Usuario
+from core.models import Configuracion, RegistroActividad, Sucursal, Usuario
 from inventario.models import Ajuste, Articulo, Categoria, Existencia, Ingreso, Movimiento, Proveedor, Traspaso
-from ventas.models import Pago, Venta
+from ventas.models import Cliente, OrdenTrabajo, Pago, Receta, Venta
 
 from .cargar_datos_prueba import ARTICULOS, CATEGORIAS, CLAVE_PRUEBA, PROVEEDORES, SUCURSALES, USUARIOS
 
 
 class Command(BaseCommand):
-    help = ('Deja la base en el estado inicial de la demostración: borra las operaciones (ventas, cajas, '
-            'marcaciones, existencias, auditoría y sesiones), el catálogo y los usuarios creados en ensayos, '
+    help = ('Deja la base en el estado inicial de la demostración: borra las operaciones (ventas, órdenes, cajas, '
+            'marcaciones, existencias, auditoría y sesiones), los clientes, el catálogo y los usuarios de ensayo, '
             'y recarga los datos de prueba. '
             'Los superusuarios se conservan.')
 
@@ -36,8 +36,11 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             borrados = {
+                'órdenes de trabajo': OrdenTrabajo.objects.all().delete()[0],
                 'pagos': Pago.objects.all().delete()[0],
                 'ventas': Venta.objects.all().delete()[0],
+                'recetas': Receta.objects.all().delete()[0],
+                'clientes': Cliente.objects.all().delete()[0],
                 'movimientos de caja': MovimientoCaja.objects.all().delete()[0],
                 'cajas': SesionCaja.objects.all().delete()[0],
                 'marcaciones': Marcacion.objects.all().delete()[0],
@@ -51,6 +54,7 @@ class Command(BaseCommand):
             }
             # Sin movimientos, el costo promedio vuelve a cero; las compras de prueba lo recalculan.
             Articulo.objects.update(costo_promedio=0)
+            Configuracion.objects.all().delete()  # Los parámetros vuelven a sus valores iniciales.
             # El catálogo creado en ensayos se borra; el de prueba se restaura con cargar_datos_prueba.
             borrados['artículos de ensayo'] = Articulo.objects.exclude(codigo__in=[a[0] for a in ARTICULOS]).delete()[0]
             de_prueba = [u[0] for u in USUARIOS]

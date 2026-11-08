@@ -1,0 +1,6 @@
+{% comment %}Etiqueta del estado de `orden`.{% endcomment %}
+{% if orden.estado == 'PENDIENTE' %}<span class="oc-estado oc-estado-aviso">Pendiente</span>
+{% elif orden.estado == 'EN_TALLER' %}<span class="oc-estado oc-estado-info">En taller</span>
+{% elif orden.estado == 'LISTO' %}<span class="oc-estado oc-estado-ok">Listo para entregar</span>
+{% elif orden.estado == 'ENTREGADO' %}<span class="oc-estado oc-estado-inactivo">Entregado</span>
+{% else %}<span class="oc-estado oc-estado-peligro">Anulada</span>{% endif %}

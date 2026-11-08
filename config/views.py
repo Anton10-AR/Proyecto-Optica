@@ -11,7 +11,7 @@ from asistencia.servicios import proximo_tipo
 from caja.servicios import caja_abierta
 from core.models import RegistroActividad
 from inventario import reportes as inventario
-from ventas.models import Venta
+from ventas.models import OrdenTrabajo, Venta
 
 
 @login_required
@@ -36,6 +36,15 @@ def inicio(request):
     if usuario.has_perm('ventas.ver_todas_ventas'):
         todas = Venta.objects.filter(fecha__date=hoy, estado=Venta.Estado.VIGENTE)
         contexto['ventas_hoy'] = todas.aggregate(cantidad=Count('id'), total=Sum('total'))
+
+    if usuario.has_perm('ventas.ver_ordenes'):
+        ordenes = OrdenTrabajo.objects.all()
+        if usuario.sucursal_id:
+            ordenes = ordenes.filter(venta__sucursal_id=usuario.sucursal_id)
+        contexto['ordenes'] = ordenes.aggregate(
+            en_curso=Count('id', filter=Q(estado__in=[OrdenTrabajo.Estado.PENDIENTE, OrdenTrabajo.Estado.EN_TALLER])),
+            listas=Count('id', filter=Q(estado=OrdenTrabajo.Estado.LISTO)),
+        )
 
     if usuario.has_perm('inventario.ver_articulos'):
         todas = inventario.ve_todas_las_sucursales(usuario)

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Órdenes de trabajo · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-tools"></i>Órdenes de trabajo</h1>
+    <p>Trabajos del taller{% if sucursal %} de {{ sucursal }}{% else %} de todas las sucursales{% endif %}. Se generan al vender lentes graduados.</p>
+  </div>
+  <form method="get">
+    <input type="hidden" name="estado" value="{{ estado }}">
+    <select name="sucursal" class="form-select" aria-label="Sucursal" onchange="this.form.submit()">
+      <option value="todas" {% if not sucursal %}selected{% endif %}>Todas las sucursales</option>
+      {% for s in sucursales %}<option value="{{ s.pk }}" {% if s == sucursal %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <noscript><button class="btn btn-secondary mt-2">Ver</button></noscript>
+  </form>
+</div>
+<ul class="nav nav-pills flex-wrap gap-1 mb-3">
+  <li class="nav-item"><a class="nav-link {% if estado == 'activas' %}active{% endif %}" href="?estado=activas&sucursal={% if sucursal %}{{ sucursal.pk }}{% else %}todas{% endif %}">En curso <span class="badge text-bg-light ms-1">{{ activas }}</span></a></li>
+  {% for valor, nombre, cantidad in estados %}
+  <li class="nav-item"><a class="nav-link {% if estado == valor %}active{% endif %}" href="?estado={{ valor }}&sucursal={% if sucursal %}{{ sucursal.pk }}{% else %}todas{% endif %}">{{ nombre }} <span class="badge text-bg-light ms-1">{{ cantidad }}</span></a></li>
+  {% endfor %}
+  <li class="nav-item"><a class="nav-link {% if estado == 'todas' %}active{% endif %}" href="?estado=todas&sucursal={% if sucursal %}{{ sucursal.pk }}{% else %}todas{% endif %}">Todas</a></li>
+</ul>
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle">
+  <thead><tr><th>N.º</th><th>Cliente</th><th>Encargada</th><th>Entrega prometida</th><th>Estado</th><th class="text-end">Saldo</th></tr></thead>
+  <tbody>
+  {% for o in pagina %}
+    <tr>
+      <td><a class="fw-medium" href="{% url 'orden_detalle' o.pk %}">{{ o.numero }}</a></td>
+      <td>{{ o.venta.cliente_nombre }}{% if not sucursal %}<div class="small text-muted">{{ o.venta.sucursal }}</div>{% endif %}</td>
+      <td class="text-nowrap">{{ o.fecha|date:"d/m/Y" }}</td>
+      <td class="text-nowrap">{% if o.fecha_prometida %}{{ o.fecha_prometida|date:"d/m/Y" }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+      <td>{% include 'ventas/ordenes/_estado.html' with orden=o %}</td>
+      <td class="text-end text-nowrap">{% with s=o.venta.saldo %}{% if o.estado == 'ANULADA' %}—{% elif s > 0 %}Bs {{ s|floatformat:"2g" }}{% else %}<span class="text-success">Pagado</span>{% endif %}{% endwith %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-tools d-block fs-3 mb-2"></i>No hay órdenes en este estado.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% include 'inventario/_paginacion.html' with singular='orden' plural='órdenes' %}
+{% endblock %}

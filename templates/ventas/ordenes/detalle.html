@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Orden {{ orden.numero }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2 d-print-none"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'orden_lista' %}">Órdenes de trabajo</a></li>
+  <li class="breadcrumb-item active">N.º {{ orden.numero }}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-tools"></i>Orden de trabajo {{ orden.numero }} {% include 'ventas/ordenes/_estado.html' %}</h1>
+    <p>{{ venta.cliente_nombre }} · {{ venta.sucursal }} · encargada el {{ orden.fecha|date:"d/m/Y H:i" }}{% if orden.fecha_prometida %} · entrega prometida el <strong>{{ orden.fecha_prometida|date:"d/m/Y" }}</strong>{% endif %}</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2 d-print-none">
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir para el taller</button>
+    {% if puede_avanzar %}
+    <form method="post" action="{% url 'orden_avanzar' orden.pk %}">{% csrf_token %}
+      <button class="btn btn-primary"><i class="bi bi-arrow-right-circle me-1"></i>{% if orden.estado == 'PENDIENTE' %}Pasar al taller{% else %}Marcar como listo{% endif %}</button>
+    </form>
+    {% endif %}
+    {% if puede_entregar %}
+    <form method="post" action="{% url 'orden_entregar' orden.pk %}" onsubmit="return confirm('¿Confirmar la entrega del trabajo al cliente?')">{% csrf_token %}
+      <button class="btn btn-acento" {% if entrega_bloqueada %}disabled title="La venta tiene saldo pendiente"{% endif %}><i class="bi bi-bag-check me-1"></i>Entregar al cliente</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if orden.activa and venta.saldo > 0 %}
+<div class="alert {% if orden.entrega_autorizada %}alert-info{% else %}alert-warning{% endif %} d-flex gap-2 d-print-none">
+  <i class="bi {% if orden.entrega_autorizada %}bi-shield-check{% else %}bi-exclamation-triangle-fill{% endif %} mt-1"></i>
+  <div>
+    La venta tiene un saldo pendiente de <strong>Bs {{ venta.saldo|floatformat:"2g" }}</strong>.
+    {% if orden.entrega_autorizada %}
+    {{ orden.entrega_autorizada_por }} autorizó la entrega con saldo el {{ orden.fecha_autorizacion|date:"d/m/Y H:i" }}: «{{ orden.motivo_autorizacion }}».
+    {% else %}
+    Para entregar el trabajo hay que cobrarlo o que el gerente autorice la entrega con saldo.
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-eyeglasses me-1 text-info"></i>Receta del {{ receta.fecha|date:"d/m/Y" }}</span>
+        <span class="small text-muted">{{ receta.get_origen_display }} · {{ receta.responsable }}</span>
+      </div>
+      <div class="card-body">
+        {% include 'ventas/recetas/_graduacion.html' %}
+        {% if receta.observaciones %}<p class="small text-muted mt-2 mb-0">{{ receta.observaciones }}</p>{% endif %}
+      </div>
+    </div>
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-box-seam me-1 text-info"></i>Trabajo encargado</div>
+      <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Artículo</th><th class="text-end">Cantidad</th></tr></thead>
+        <tbody>
+        {% for d in detalles %}
+          <tr><td>{{ d.articulo.codigo }} · {{ d.articulo.nombre }}{% if d.articulo.requiere_receta %} <span class="oc-estado oc-estado-info">Tallar según receta</span>{% endif %}</td><td class="text-end">{{ d.cantidad }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% if venta.descripcion %}<div class="card-body border-top small"><span class="text-muted">Observación de la venta:</span> {{ venta.descripcion }}</div>{% endif %}
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card mb-4">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-5 text-muted fw-medium">Venta</dt>
+          <dd class="col-7">{% if puede_ver_venta %}<a href="{% url 'venta_detalle' venta.pk %}">Nota {{ venta.numero }}</a>{% else %}Nota {{ venta.numero }}{% endif %}{% if venta.estado == 'ANULADA' %} <span class="oc-estado oc-estado-inactivo">Anulada</span>{% endif %}</dd>
+          <dt class="col-5 text-muted fw-medium">Cliente</dt>
+          <dd class="col-7">{% if venta.cliente %}<a href="{% url 'cliente_detalle' venta.cliente.pk %}">{{ venta.cliente }}</a>{% if venta.cliente.telefono %}<div class="small text-muted">{{ venta.cliente.telefono }}</div>{% endif %}{% else %}{{ venta.cliente_nombre }}{% endif %}</dd>
+          <dt class="col-5 text-muted fw-medium">Vendedor</dt><dd class="col-7">{{ venta.vendedor }}</dd>
+          <dt class="col-5 text-muted fw-medium">Total</dt><dd class="col-7">Bs {{ venta.total|floatformat:"2g" }}</dd>
+          <dt class="col-5 text-muted fw-medium">Pagado</dt><dd class="col-7">Bs {{ venta.total_pagado|floatformat:"2g" }}</dd>
+          <dt class="col-5 text-muted fw-medium">Saldo</dt><dd class="col-7 mb-0 fw-semibold {% if venta.saldo > 0 %}text-warning-emphasis{% else %}text-success{% endif %}">Bs {{ venta.saldo|floatformat:"2g" }}</dd>
+        </dl>
+      </div>
+    </div>
+    {% if pago_form %}
+    <div class="card mb-4 d-print-none">
+      <div class="card-header"><i class="bi bi-cash me-1 text-info"></i>Cobrar el saldo</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'venta_cobrar' venta.pk %}" novalidate>
+          {% csrf_token %}<input type="hidden" name="desde" value="orden">
+          {% with form=pago_form %}{% include '_campos.html' with columnas=2 %}{% endwith %}
+          <button class="btn btn-primary w-100"><i class="bi bi-check-lg me-1"></i>Registrar pago</button>
+        </form>
+        <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>El pago se registra en su caja abierta.</p>
+      </div>
+    </div>
+    {% endif %}
+    {% if autorizar_form %}
+    <div class="card mb-4 d-print-none">
+      <div class="card-header"><i class="bi bi-shield-check me-1 text-info"></i>Autorizar la entrega con saldo</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'orden_autorizar' orden.pk %}" novalidate>
+          {% csrf_token %}
+          {% with form=autorizar_form %}{% include '_campos.html' %}{% endwith %}
+          <button class="btn btn-outline-primary w-100"><i class="bi bi-shield-check me-1"></i>Autorizar</button>
+        </form>
+        <p class="small text-muted mt-3 mb-0">La autorización queda registrada con su nombre y la fecha.</p>
+      </div>
+    </div>
+    {% endif %}
+    <div class="card d-print-none">
+      <div class="card-header"><i class="bi bi-clock-history me-1 text-info"></i>Historial</div>
+      <ul class="list-group list-group-flush">
+        {% for e in eventos %}
+        <li class="list-group-item">
+          <div class="d-flex justify-content-between gap-2"><span class="fw-medium small">{{ e.get_estado_display }}</span><span class="small text-muted text-nowrap">{{ e.fecha|date:"d/m/Y H:i" }}</span></div>
+          <div class="small text-muted">{{ e.usuario }}{% if e.nota %} · {{ e.nota }}{% endif %}</div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

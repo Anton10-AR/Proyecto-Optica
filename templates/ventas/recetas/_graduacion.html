@@ -1,0 +1,14 @@
+{% load optica %}
+{% comment %}Tabla de graduación OD/OI de `receta`.{% endcomment %}
+<div class="table-responsive">
+<table class="table table-sm table-bordered align-middle text-center mb-0">
+  <thead><tr><th class="text-start">Ojo</th><th>Esfera</th><th>Cilindro</th><th>Eje</th><th>Adición</th></tr></thead>
+  <tbody>
+    <tr><th class="text-start">OD <span class="fw-normal text-muted small">(derecho)</span></th>
+      <td>{{ receta.od_esfera|dioptria }}</td><td>{{ receta.od_cilindro|dioptria }}</td><td>{{ receta.od_eje|eje }}</td><td>{{ receta.od_adicion|dioptria }}</td></tr>
+    <tr><th class="text-start">OI <span class="fw-normal text-muted small">(izquierdo)</span></th>
+      <td>{{ receta.oi_esfera|dioptria }}</td><td>{{ receta.oi_cilindro|dioptria }}</td><td>{{ receta.oi_eje|eje }}</td><td>{{ receta.oi_adicion|dioptria }}</td></tr>
+  </tbody>
+  <tfoot><tr><td colspan="5" class="text-start">Distancia pupilar: <strong>{{ receta.distancia_pupilar|floatformat:1 }} mm</strong></td></tr></tfoot>
+</table>
+</div>

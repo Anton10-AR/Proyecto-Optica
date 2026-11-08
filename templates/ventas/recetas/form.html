@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Nueva receta · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'cliente_lista' %}">Clientes</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'cliente_detalle' cliente.pk %}">{{ cliente }}</a></li>
+  <li class="breadcrumb-item active">Nueva receta</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-eyeglasses"></i>Nueva receta</h1>
+    <p>{{ cliente }}. Una receta no se modifica después: si cambia la graduación, registre una nueva.</p>
+  </div>
+</div>
+<form method="post" novalidate class="card card-body p-4" id="form-receta">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger d-flex gap-2"><i class="bi bi-exclamation-octagon-fill mt-1"></i><div>{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div></div>
+  {% endif %}
+  <h2 class="h6 text-muted text-uppercase mb-2">Origen</h2>
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">{% with campo=form.fecha %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-3">{% with campo=form.origen %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-6" data-origen="EXAMEN">{% with campo=form.optico %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-6" data-origen="EXTERNA">{% with campo=form.medico %}{% include '_campo.html' %}{% endwith %}</div>
+  </div>
+  <h2 class="h6 text-muted text-uppercase mb-2">Graduación</h2>
+  <div class="table-responsive mb-2">
+  <table class="table table-borderless align-top mb-0">
+    <thead><tr><th style="width:8rem"></th><th>Esfera</th><th>Cilindro</th><th>Eje (°)</th><th>Adición</th></tr></thead>
+    <tbody>
+      <tr>
+        <th class="pt-3">OD <span class="fw-normal text-muted small d-block">ojo derecho</span></th>
+        {% for campo in form %}{% if campo.name == 'od_esfera' or campo.name == 'od_cilindro' or campo.name == 'od_eje' or campo.name == 'od_adicion' %}
+        <td style="min-width:7rem">{{ campo }}{% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}</td>
+        {% endif %}{% endfor %}
+      </tr>
+      <tr>
+        <th class="pt-3">OI <span class="fw-normal text-muted small d-block">ojo izquierdo</span></th>
+        {% for campo in form %}{% if campo.name == 'oi_esfera' or campo.name == 'oi_cilindro' or campo.name == 'oi_eje' or campo.name == 'oi_adicion' %}
+        <td style="min-width:7rem">{{ campo }}{% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}</td>
+        {% endif %}{% endfor %}
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="small text-muted"><i class="bi bi-info-circle me-1"></i>Esfera, cilindro y adición en dioptrías, en pasos de 0,25 (los negativos con signo menos). El eje solo se llena si hay cilindro. La adición, solo para cerca o progresivos.</p>
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">{% with campo=form.distancia_pupilar %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-9">{% with campo=form.observaciones %}{% include '_campo.html' %}{% endwith %}</div>
+  </div>
+  <div class="d-flex gap-2 border-top pt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Registrar receta</button>
+    <a class="btn btn-outline-secondary" href="{% url 'cliente_detalle' cliente.pk %}">Cancelar</a>
+  </div>
+</form>
+<script>
+(() => {
+  // Muestra el óptico o el médico según el origen de la receta.
+  const origen = document.getElementById('id_origen');
+  const actualizar = () => document.querySelectorAll('[data-origen]').forEach(
+    bloque => bloque.classList.toggle('d-none', bloque.dataset.origen !== origen.value));
+  origen.addEventListener('change', actualizar);
+  actualizar();
+})();
+</script>
+{% endblock %}

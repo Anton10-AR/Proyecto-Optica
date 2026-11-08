@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Receta · {{ receta.cliente }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2 d-print-none"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'cliente_lista' %}">Clientes</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'cliente_detalle' receta.cliente.pk %}">{{ receta.cliente }}</a></li>
+  <li class="breadcrumb-item active">Receta del {{ receta.fecha|date:"d/m/Y" }}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-eyeglasses"></i>Receta del {{ receta.fecha|date:"d/m/Y" }}</h1>
+    <p>{{ receta.cliente }}{% if receta.cliente.ci_nit %} · CI/NIT {{ receta.cliente.ci_nit }}{% endif %}</p>
+  </div>
+  <div class="d-flex gap-2 d-print-none">
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir</button>
+    {% if perms.ventas.registrar_venta %}<a class="btn btn-primary" href="{% url 'venta_crear' %}?cliente={{ receta.cliente.pk }}&receta={{ receta.pk }}"><i class="bi bi-plus-circle me-1"></i>Vender con esta receta</a>{% endif %}
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card mb-4"><div class="card-body">{% include 'ventas/recetas/_graduacion.html' %}</div></div>
+    {% if receta.observaciones %}<div class="card card-body mb-4"><div class="small text-muted">Observaciones</div>{{ receta.observaciones }}</div>{% endif %}
+  </div>
+  <div class="col-lg-5">
+    <div class="card mb-4">
+      <div class="card-body">
+        <dl class="mb-0">
+          <dt class="text-muted fw-medium">Origen</dt><dd>{{ receta.get_origen_display }}</dd>
+          <dt class="text-muted fw-medium">{% if receta.origen == 'EXAMEN' %}Óptico responsable{% else %}Médico o institución{% endif %}</dt><dd>{{ receta.responsable }}</dd>
+          <dt class="text-muted fw-medium">Registrada por</dt><dd class="mb-0">{{ receta.registrado_por }} · {{ receta.fecha_registro|date:"d/m/Y H:i" }}</dd>
+        </dl>
+      </div>
+    </div>
+    {% if ordenes %}
+    <div class="card d-print-none">
+      <div class="card-header"><i class="bi bi-tools me-1 text-info"></i>Órdenes de trabajo con esta receta</div>
+      <ul class="list-group list-group-flush">
+        {% for o in ordenes %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {% if perms.ventas.ver_ordenes %}<a href="{% url 'orden_detalle' o.pk %}">N.º {{ o.numero }}</a>{% else %}N.º {{ o.numero }}{% endif %}
+          {% include 'ventas/ordenes/_estado.html' with orden=o %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

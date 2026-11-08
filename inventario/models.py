@@ -83,6 +83,11 @@ class Articulo(models.Model):
         'controla stock', default=True,
         help_text='Desmárquelo para los servicios (examen visual, montaje), que no tienen existencias.',
     )
+    requiere_receta = models.BooleanField(
+        'lente graduado', default=False,
+        help_text='Márquelo en las lunas que se tallan según la receta: su venta exige una receta del cliente, '
+                  'un anticipo mínimo y genera una orden de trabajo para el taller.',
+    )
     activo = models.BooleanField(default=True, help_text='Un artículo inactivo no se puede vender ni ingresar.')
 
     class Meta:

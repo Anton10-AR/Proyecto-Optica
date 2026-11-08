@@ -12,4 +12,5 @@ urlpatterns = [
     path('sucursales/', views.SucursalListaView.as_view(), name='sucursal_lista'),
     path('sucursales/nueva/', views.SucursalCrearView.as_view(), name='sucursal_crear'),
     path('sucursales/<int:pk>/editar/', views.SucursalEditarView.as_view(), name='sucursal_editar'),
+    path('parametros/', views.parametros, name='parametros'),
 ]
