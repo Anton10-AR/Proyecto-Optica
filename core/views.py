@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.models import Group
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
@@ -24,7 +25,14 @@ from .models import Configuracion, RegistroActividad, Sucursal, Usuario
 
 
 class PermisoMixin(LoginRequiredMixin, PermissionRequiredMixin):
+    """Exige iniciar sesión y el permiso. Sin sesión, lleva al login (RF30); sin permiso, responde 403."""
+
     raise_exception = True
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return redirect_to_login(self.request.get_full_path(), self.get_login_url())
+        return super().handle_no_permission()
 
 
 def requiere_alguno(*permisos):

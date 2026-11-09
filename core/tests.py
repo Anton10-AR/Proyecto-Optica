@@ -86,6 +86,16 @@ class ControlDeAccesoTests(BaseTest):
         self.cajero.save()
         self.assertEqual(list(self.cajero.groups.values_list('name', flat=True)), [roles.EMPLEADO])
 
+    def test_sin_sesion_todas_las_pantallas_llevan_al_login(self):
+        """RF30: también las vistas basadas en clases redirigen al login en lugar de responder 403."""
+        for nombre, args in (('usuario_crear', []), ('sucursal_lista', []), ('actividad_lista', []),
+                             ('articulo_crear', []), ('categoria_lista', []), ('proveedor_crear', []),
+                             ('inicio', []), ('venta_lista', [])):
+            with self.subTest(vista=nombre):
+                url = reverse(nombre, args=args)
+                self.assertRedirects(self.client.get(url), f"{reverse('login')}?next={url}",
+                                     fetch_redirect_response=False)
+
     def test_restriccion_de_vistas_por_rol(self):
         casos = {
             'usuario_lista': {self.admin: 200, self.cajero: 403, self.empleado: 403},
