@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load asistencia %}
+{% block title %}Reporte de asistencia · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-clipboard-data"></i>Reporte de asistencia</h1>
+    <p>Del {{ desde|date:"d/m/Y" }} al {{ hasta|date:"d/m/Y" }}{% if sucursal %} · {{ sucursal }}{% else %} · todas las sucursales{% endif %}.</p>
+  </div>
+  <div class="d-flex gap-2 d-print-none">
+    <a class="btn btn-outline-primary" href="?{{ filtros }}&formato=csv"><i class="bi bi-filetype-csv me-1"></i>Exportar CSV</a>
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir</button>
+  </div>
+</div>
+{% include 'asistencia/_filtro_periodo.html' with con_sucursal=True %}
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+  <thead><tr><th>Empleado</th><th>Sucursal</th>
+    <th class="text-end">Días laborables</th><th class="text-end">Asistidos</th><th class="text-end">Faltas</th>
+    <th class="text-end">Atrasos</th><th class="text-end">Tramos sin marcar</th><th class="text-end">Permisos</th><th class="text-end">Horas</th></tr></thead>
+  <tbody>
+  {% for r in resumenes %}
+    <tr>
+      <td><a class="fw-medium" href="{% url 'asistencia_reporte_empleado' r.usuario.pk %}?{{ filtros }}">{{ r.usuario }}</a>
+        <div class="small text-muted">{% firstof r.usuario.cargo r.usuario.rol as puesto %}{{ puesto }}{% if not r.con_horario %}{% if puesto %} · {% endif %}<span class="text-warning-emphasis">sin horario asignado</span>{% endif %}</div></td>
+      <td class="small">{{ r.usuario.sucursal }}</td>
+      <td class="text-end">{{ r.laborables }}</td>
+      <td class="text-end">{{ r.asistidos }}</td>
+      <td class="text-end">{% if r.faltas %}<span class="oc-estado oc-estado-peligro">{{ r.faltas }}</span>{% else %}0{% endif %}</td>
+      <td class="text-end">{% if r.atrasos %}<span class="oc-estado oc-estado-aviso">{{ r.atrasos }}</span><div class="small text-muted">{{ r.minutos_atraso|minutos }}</div>{% else %}0{% endif %}</td>
+      <td class="text-end">{{ r.tramos_sin_marcar }}</td>
+      <td class="text-end">{{ r.ausencias }}</td>
+      <td class="text-end fw-medium">{{ r.horas|duracion }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="9" class="text-center text-muted py-5">No hay personal con sucursal{% if sucursal %} en {{ sucursal }}{% endif %}.</td></tr>
+  {% endfor %}
+  </tbody>
+  {% if resumenes %}
+  <tfoot><tr><th colspan="2" class="text-end">Total</th><th class="text-end">{{ totales.laborables }}</th><th class="text-end">{{ totales.asistidos }}</th>
+    <th class="text-end">{{ totales.faltas }}</th><th class="text-end">{{ totales.atrasos }}<div class="small fw-normal text-muted">{{ totales.minutos_atraso|minutos }}</div></th>
+    <th class="text-end">{{ totales.tramos_sin_marcar }}</th><th class="text-end">{{ totales.ausencias }}</th><th class="text-end">{{ total_horas|duracion }}</th></tr></tfoot>
+  {% endif %}
+</table>
+</div>
+</div>
+<p class="small text-muted mt-2 mb-0">Días laborables: los que tienen tramos en el horario del empleado, sin contar feriados ni permisos. Falta: un día laborable sin ninguna entrada. Atraso: entrada a un tramo después de la tolerancia, contado desde la hora del horario. Tramo sin marcar: un tramo de un día asistido sin entrada. Hoy solo se cuenta como falta cuando terminaron todos sus tramos.</p>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% comment %}Filtro de período (y sucursal, si `con_sucursal`). Recibe `form` (ReporteForm).{% endcomment %}
+<form method="get" class="card card-body mb-3 d-print-none">
+  <div class="row g-2 align-items-end">
+    <div class="col-6 col-md-3"><label class="form-label small mb-1" for="id_desde">Desde</label>{{ form.desde }}</div>
+    <div class="col-6 col-md-3"><label class="form-label small mb-1" for="id_hasta">Hasta</label>{{ form.hasta }}</div>
+    {% if con_sucursal %}<div class="col-md-3"><label class="form-label small mb-1" for="id_sucursal">Sucursal</label>{{ form.sucursal }}</div>{% endif %}
+    <div class="col-md-3"><button class="btn btn-outline-primary w-100"><i class="bi bi-funnel me-1"></i>Ver</button></div>
+  </div>
+  {% for campo in form %}{% for e in campo.errors %}<div class="invalid-feedback d-block">{{ campo.label }}: {{ e }}</div>{% endfor %}{% endfor %}
+</form>

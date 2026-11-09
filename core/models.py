@@ -53,6 +53,8 @@ class Usuario(AbstractUser):
         'CI', max_length=13, unique=True, null=True, blank=True, validators=[validar_ci],
     )
     telefono = models.CharField('teléfono', max_length=13, blank=True, validators=[validar_telefono])
+    cargo = models.CharField(max_length=80, blank=True,
+                             help_text='Puesto en la óptica, por ejemplo "Optometrista" o "Vendedora". No es el rol.')
     rol = models.ForeignKey(
         Group, on_delete=models.PROTECT, null=True, blank=True, related_name='usuarios',
     )
@@ -133,10 +135,16 @@ class Configuracion(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         help_text='Porcentaje del total que debe pagarse al registrar una venta con lentes graduados.',
     )
+    tolerancia_minutos = models.PositiveSmallIntegerField(
+        'tolerancia de atraso (minutos)', default=10, validators=[MaxValueValidator(60)],
+        help_text='Minutos de gracia en la entrada de cada tramo. Si se superan, el atraso se cuenta desde '
+                  'la hora del horario.',
+    )
 
     class Meta:
         verbose_name = 'parámetros del sistema'
         verbose_name_plural = 'parámetros del sistema'
+        permissions = [('configurar_asistencia', 'Puede definir la tolerancia de atraso')]
 
     def __str__(self):
         return 'Parámetros del sistema'

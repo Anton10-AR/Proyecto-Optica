@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from asistencia.models import Marcacion
+from asistencia.models import AsignacionHorario, Ausencia, Feriado, Horario, Marcacion
 from caja.models import MovimientoCaja, SesionCaja
 from core.models import Configuracion, RegistroActividad, Sucursal, Usuario
 from inventario.models import Ajuste, Articulo, Categoria, Existencia, Ingreso, Movimiento, Proveedor, Traspaso
@@ -17,7 +17,8 @@ from .cargar_datos_prueba import ARTICULOS, CATEGORIAS, CLAVE_PRUEBA, PROVEEDORE
 
 class Command(BaseCommand):
     help = ('Deja la base en el estado inicial de la demostración: borra las operaciones (ventas, órdenes, cajas, '
-            'marcaciones, existencias, auditoría y sesiones), los clientes, el catálogo y los usuarios de ensayo, '
+            'marcaciones, existencias, auditoría y sesiones), los clientes, los horarios, permisos y feriados, '
+            'el catálogo y los usuarios de ensayo, '
             'y recarga los datos de prueba. '
             'Los superusuarios se conservan.')
 
@@ -44,6 +45,10 @@ class Command(BaseCommand):
                 'movimientos de caja': MovimientoCaja.objects.all().delete()[0],
                 'cajas': SesionCaja.objects.all().delete()[0],
                 'marcaciones': Marcacion.objects.all().delete()[0],
+                'asignaciones de horario': AsignacionHorario.objects.all().delete()[0],
+                'horarios': Horario.objects.all().delete()[0],
+                'permisos y vacaciones': Ausencia.objects.all().delete()[0],
+                'feriados': Feriado.objects.all().delete()[0],
                 'registros de auditoría': RegistroActividad.objects.all().delete()[0],
                 'sesiones abiertas': Session.objects.all().delete()[0],
                 'movimientos de inventario': Movimiento.objects.all().delete()[0],

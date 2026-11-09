@@ -72,26 +72,35 @@
           </ul>
         </li>
         {% endif %}
-        {% if perms.asistencia.marcar_asistencia or perms.asistencia.ver_todas_marcaciones %}
+        {% if perms.asistencia.marcar_asistencia or perms.asistencia.ver_todas_marcaciones or perms.asistencia.gestionar_horarios or perms.asistencia.gestionar_ausencias or perms.asistencia.gestionar_feriados %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if '/asistencia/' in request.path %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-clock-history me-1"></i>Asistencia</a>
           <ul class="dropdown-menu">
             {% if perms.asistencia.marcar_asistencia %}
             <li><a class="dropdown-item" href="{% url 'asistencia_marcar' %}"><i class="bi bi-geo-alt"></i>Marcar entrada/salida</a></li>
-            <li><a class="dropdown-item" href="{% url 'asistencia_mi_historial' %}"><i class="bi bi-calendar3"></i>Mi historial</a></li>
+            <li><a class="dropdown-item" href="{% url 'asistencia_mia' %}"><i class="bi bi-person-check"></i>Mi asistencia</a></li>
+            <li><a class="dropdown-item" href="{% url 'asistencia_mi_historial' %}"><i class="bi bi-calendar3"></i>Mis marcaciones</a></li>
             {% endif %}
-            {% if perms.asistencia.ver_todas_marcaciones %}<li><a class="dropdown-item" href="{% url 'asistencia_todas' %}"><i class="bi bi-people"></i>Asistencia del personal</a></li>{% endif %}
+            {% if perms.asistencia.ver_todas_marcaciones %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'asistencia_reporte' %}"><i class="bi bi-clipboard-data"></i>Reporte de asistencia</a></li>
+            <li><a class="dropdown-item" href="{% url 'asistencia_todas' %}"><i class="bi bi-people"></i>Marcaciones del personal</a></li>
+            {% endif %}
+            {% if perms.asistencia.gestionar_horarios or perms.asistencia.gestionar_ausencias or perms.asistencia.gestionar_feriados %}<li><hr class="dropdown-divider"></li>{% endif %}
+            {% if perms.asistencia.gestionar_horarios %}<li><a class="dropdown-item" href="{% url 'personal_lista' %}"><i class="bi bi-person-badge"></i>Personal y horarios</a></li>{% endif %}
+            {% if perms.asistencia.gestionar_ausencias %}<li><a class="dropdown-item" href="{% url 'ausencia_lista' %}"><i class="bi bi-calendar-x"></i>Permisos y vacaciones</a></li>{% endif %}
+            {% if perms.asistencia.gestionar_feriados %}<li><a class="dropdown-item" href="{% url 'feriado_lista' %}"><i class="bi bi-calendar-heart"></i>Feriados</a></li>{% endif %}
           </ul>
         </li>
         {% endif %}
-        {% if perms.core.view_usuario or perms.core.view_sucursal or perms.core.view_registroactividad or perms.core.change_configuracion %}
+        {% if perms.core.view_usuario or perms.core.view_sucursal or perms.core.view_registroactividad or perms.core.change_configuracion or perms.core.configurar_asistencia %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {% if '/administracion/' in request.path %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-gear me-1"></i>Administración</a>
           <ul class="dropdown-menu">
             {% if perms.core.view_usuario %}<li><a class="dropdown-item" href="{% url 'usuario_lista' %}"><i class="bi bi-person-badge"></i>Usuarios</a></li>{% endif %}
             {% if perms.core.view_sucursal %}<li><a class="dropdown-item" href="{% url 'sucursal_lista' %}"><i class="bi bi-shop"></i>Sucursales</a></li>{% endif %}
             {% if perms.core.view_registroactividad %}<li><a class="dropdown-item" href="{% url 'actividad_lista' %}"><i class="bi bi-shield-check"></i>Registro de actividad</a></li>{% endif %}
-            {% if perms.core.change_configuracion %}<li><a class="dropdown-item" href="{% url 'parametros' %}"><i class="bi bi-sliders"></i>Parámetros</a></li>{% endif %}
+            {% if perms.core.change_configuracion or perms.core.configurar_asistencia %}<li><a class="dropdown-item" href="{% url 'parametros' %}"><i class="bi bi-sliders"></i>Parámetros</a></li>{% endif %}
           </ul>
         </li>
         {% endif %}

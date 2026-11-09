@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Feriados · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-calendar-heart"></i>Feriados {{ anio }}</h1>
+    <p>Días no laborables para todas las sucursales: no se cuentan como falta.</p>
+  </div>
+  <form method="get">
+    <select name="anio" class="form-select" aria-label="Año" onchange="this.form.submit()">
+      {% for a in anios %}<option value="{{ a }}" {% if a == anio %}selected{% endif %}>{{ a }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <form method="post" novalidate class="card card-body">
+      {% csrf_token %}
+      <h2 class="h6 text-muted text-uppercase mb-2">Agregar feriado</h2>
+      {% include '_campos.html' %}
+      <button class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+    </form>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Fecha</th><th>Día</th><th>Feriado</th><th></th></tr></thead>
+        <tbody>
+        {% for f in feriados %}
+          <tr>
+            <td class="text-nowrap">{{ f.fecha|date:"d/m/Y" }}</td>
+            <td class="text-muted">{{ f.fecha|date:"l"|capfirst }}</td>
+            <td>{{ f.nombre }}</td>
+            <td class="text-end">
+              <form method="post" action="{% url 'feriado_eliminar' f.pk %}" onsubmit="return confirm('¿Eliminar este feriado?')">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i><span class="visually-hidden">Eliminar</span></button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-5">No hay feriados registrados en {{ anio }}.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ empleado }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'personal_lista' %}">Personal y horarios</a></li>
+  <li class="breadcrumb-item active">{{ empleado }}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-person-badge"></i>{{ empleado }}</h1>
+    <p>{{ empleado.rol|default:"Sin rol" }} · {{ empleado.sucursal|default:"sin sucursal" }}{% if empleado.ci %} · CI {{ empleado.ci }}{% endif %}</p>
+  </div>
+  {% if perms.asistencia.ver_todas_marcaciones %}<a class="btn btn-outline-primary" href="{% url 'asistencia_reporte_empleado' empleado.pk %}"><i class="bi bi-clipboard-data me-1"></i>Ver su asistencia</a>{% endif %}
+</div>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <form method="post" novalidate class="card card-body mb-4">
+      {% csrf_token %}<input type="hidden" name="accion" value="cargo">
+      <h2 class="h6 text-muted text-uppercase mb-2">Cargo</h2>
+      {% with form=cargo_form %}{% include '_campos.html' %}{% endwith %}
+      <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Guardar cargo</button>
+    </form>
+    <form method="post" novalidate class="card card-body">
+      {% csrf_token %}<input type="hidden" name="accion" value="asignar">
+      <h2 class="h6 text-muted text-uppercase mb-2">Asignar horario</h2>
+      {% with form=asignar_form %}{% include '_campos.html' %}{% endwith %}
+      <button class="btn btn-primary"><i class="bi bi-calendar-check me-1"></i>Asignar</button>
+    </form>
+  </div>
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-calendar-week me-1 text-info"></i>Historial de horarios</div>
+      <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Horario</th><th>Vigente desde</th><th>Asignado por</th><th></th></tr></thead>
+        <tbody>
+        {% for a in asignaciones %}
+          <tr><td>{{ a.horario }}</td><td>{{ a.desde|date:"d/m/Y" }}</td><td class="small text-muted">{{ a.registrado_por }}</td>
+            <td class="text-end">{% if a == vigente %}<span class="oc-estado oc-estado-ok">Vigente</span>{% elif a.desde > hoy %}<span class="oc-estado oc-estado-info">Próximo</span>{% endif %}</td></tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-4">Aún no tiene horario asignado.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

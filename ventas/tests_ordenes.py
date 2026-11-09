@@ -256,8 +256,9 @@ class OrdenesTests(BaseTest):
         self.client.force_login(self.cajero)
         self.assertEqual(self.client.get(reverse('parametros')).status_code, 403)
         self.client.force_login(self.gerente)
-        self.assertRedirects(self.client.post(reverse('parametros'), {'anticipo_minimo_porcentaje': '40'}),
-                             reverse('parametros'))
+        self.assertRedirects(self.client.post(reverse('parametros'), {
+            'seccion': 'ventas', 'ventas-anticipo_minimo_porcentaje': '40'}), reverse('parametros'))
         self.assertEqual(Configuracion.actual().anticipo_minimo_porcentaje, 40)
-        self.assertContains(self.client.post(reverse('parametros'), {'anticipo_minimo_porcentaje': '120'}), '100')
+        self.assertContains(self.client.post(reverse('parametros'), {
+            'seccion': 'ventas', 'ventas-anticipo_minimo_porcentaje': '120'}), '100')
         self.assertEqual(EventoOrden.objects.count(), 0)

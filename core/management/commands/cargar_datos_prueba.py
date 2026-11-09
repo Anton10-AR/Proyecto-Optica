@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import Group
@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from asistencia.models import Marcacion
+from asistencia.models import AsignacionHorario, Ausencia, Feriado, Horario, Marcacion, TramoHorario
 from caja.models import FormaPago, MovimientoCaja, SesionCaja
 from core import roles
 from core.models import Sucursal, Usuario
@@ -77,6 +77,31 @@ CLIENTES = [
 ]
 
 
+CARGOS = {
+    'administrador': 'Administradora', 'gerente': 'Gerente general', 'cajero1': 'Vendedor', 'cajero2': 'Vendedora',
+    'rrhh': 'Encargada de personal', 'almacen': 'Encargado de almacén', 'optico': 'Optometrista',
+    'empleado1': 'Auxiliar de taller', 'empleado2': 'Auxiliar de limpieza', 'exempleado': 'Auxiliar de taller',
+}
+
+# Feriados nacionales de Bolivia de 2026 y el aniversario de Chuquisaca (las sucursales están en Sucre).
+# Verifique cada año el calendario oficial: algunos feriados se trasladan por decreto.
+FERIADOS = [
+    ('2026-01-01', 'Año Nuevo'), ('2026-01-22', 'Día del Estado Plurinacional'),
+    ('2026-02-16', 'Carnaval'), ('2026-02-17', 'Carnaval'), ('2026-04-03', 'Viernes Santo'),
+    ('2026-05-01', 'Día del Trabajo'), ('2026-05-25', 'Aniversario de Chuquisaca'),
+    ('2026-06-04', 'Corpus Christi'), ('2026-06-21', 'Año Nuevo Andino Amazónico'),
+    ('2026-08-06', 'Día de la Independencia'), ('2026-11-02', 'Todos Santos'), ('2026-12-25', 'Navidad'),
+]
+
+# nombre, descripción, {día de la semana: [(entrada, salida), ...]}
+PARTIDO = [('08:30', '12:30'), ('14:30', '19:30')]
+HORARIOS = [
+    ('Horario partido', 'Lunes a viernes con descanso al mediodía; sábado en la mañana.',
+     {**{dia: PARTIDO for dia in range(5)}, 5: [('09:00', '13:00')]}),
+    ('Medio tiempo (mañana)', 'Lunes a sábado en la mañana.', {dia: [('08:30', '12:30')] for dia in range(6)}),
+]
+
+
 class Command(BaseCommand):
     help = 'Crea roles, sucursales, usuarios de cada rol y operaciones de ejemplo para demostraciones.'
 
@@ -96,6 +121,7 @@ class Command(BaseCommand):
                 'first_name': nombres, 'last_name': apellidos, 'ci': ci, 'telefono': telefono,
                 'email': f'{username}@opticascasimiro.test', 'rol': Group.objects.get(name=rol),
                 'sucursal': sucursales[suc], 'is_active': activo, 'debe_cambiar_clave': False,
+                'cargo': CARGOS.get(username, ''),
             })
             usuario.set_password(CLAVE_PRUEBA)
             usuario.save()
@@ -105,6 +131,7 @@ class Command(BaseCommand):
         self._inventario_inicial(usuarios, sucursales)
         self._clientes(usuarios)
         self._operaciones_de_ejemplo(usuarios)
+        self._asistencia(usuarios)
 
         self.stdout.write(self.style.SUCCESS(
             f'Datos de prueba cargados. Usuarios: {", ".join(usuarios)}. Contraseña de todos: {CLAVE_PRUEBA}'
@@ -253,3 +280,64 @@ class Command(BaseCommand):
                 latitud=sucursal.latitud, longitud=sucursal.longitud, distancia_metros=0,
             )
             Marcacion.objects.filter(pk=marcacion.pk).update(fecha_hora=a_las(hora, 30))
+
+    def _asistencia(self, usuarios):
+        """Horarios, feriados, permisos y dos semanas de marcaciones, para que el reporte tenga casos de cada tipo:
+        días puntuales, un atraso, un tramo sin marcar, una falta, un feriado, una vacación y un permiso."""
+        for fecha, nombre in FERIADOS:
+            Feriado.objects.get_or_create(fecha=date.fromisoformat(fecha), defaults={'nombre': nombre})
+        if Horario.objects.exists():
+            return
+        horarios = {}
+        for nombre, descripcion, dias in HORARIOS:
+            horario = Horario.objects.create(nombre=nombre, descripcion=descripcion)
+            TramoHorario.objects.bulk_create([
+                TramoHorario(horario=horario, dia_semana=dia, hora_entrada=time.fromisoformat(entrada),
+                             hora_salida=time.fromisoformat(salida))
+                for dia, tramos in dias.items() for entrada, salida in tramos
+            ])
+            horarios[nombre] = horario
+        hoy = timezone.localdate()
+        rrhh = usuarios['rrhh']
+        personal = {u: usuario for u, usuario in usuarios.items() if usuario.is_active and usuario.sucursal_id}
+        for username, usuario in personal.items():
+            horario = horarios['Medio tiempo (mañana)' if username == 'empleado2' else 'Horario partido']
+            AsignacionHorario.objects.create(usuario=usuario, horario=horario, desde=hoy - timedelta(days=30),
+                                             registrado_por=rrhh)
+
+        # Los casos se fijan en días hábiles (lunes a viernes, sin feriados) de las últimas dos semanas, contados
+        # hacia atrás desde anteayer, para que se vean igual sea cual sea el día en que se cargan los datos.
+        feriados = set(Feriado.objects.values_list('fecha', flat=True))
+        habiles = [hoy - timedelta(days=d) for d in range(2, 15)
+                   if (hoy - timedelta(days=d)).weekday() < 5 and hoy - timedelta(days=d) not in feriados]
+        Ausencia.objects.create(usuario=usuarios['empleado2'], tipo=Ausencia.Tipo.VACACION, desde=habiles[7],
+                                hasta=habiles[5], motivo='Vacación anual', registrado_por=rrhh)
+        Ausencia.objects.create(usuario=usuarios['cajero1'], tipo=Ausencia.Tipo.PERMISO, desde=habiles[4],
+                                hasta=habiles[4], motivo='Trámite personal', registrado_por=rrhh)
+        # Caso por fecha: 'falta' (no marca), 'sin_tarde' (no vuelve en la tarde) o minutos de atraso en la mañana.
+        casos = {
+            'empleado1': {habiles[0]: 22, habiles[2]: 'sin_tarde', habiles[5]: 'falta'},
+            'cajero1': {habiles[1]: 11, habiles[6]: 4},  # 11 min supera la tolerancia de 10; 4 min no
+        }
+
+        # Marcaciones de los últimos 14 días para todo el personal; se omiten los días que ya tienen marcaciones.
+        for username, usuario in personal.items():
+            tramos = usuario.asignaciones_horario.get().horario.tramos_por_dia()
+            ausencias = list(usuario.ausencias.all())
+            for atras in range(1, 15):
+                fecha = hoy - timedelta(days=atras)
+                caso = casos.get(username, {}).get(fecha)
+                if (fecha in feriados or caso == 'falta' or any(a.desde <= fecha <= a.hasta for a in ausencias)
+                        or usuario.marcaciones.filter(fecha_hora__date=fecha).exists()):
+                    continue
+                for n, tramo in enumerate(tramos.get(fecha.weekday(), [])):
+                    if caso == 'sin_tarde' and n == 1:
+                        continue
+                    minutos = caso if isinstance(caso, int) and n == 0 else (atras + n) % 4 - 4  # puntual: antes
+                    entrada = datetime.combine(fecha, tramo.hora_entrada) + timedelta(minutes=minutos)
+                    salida = datetime.combine(fecha, tramo.hora_salida) + timedelta(minutes=1 + (atras + n) % 5)
+                    for tipo, momento in ((Marcacion.Tipo.ENTRADA, entrada), (Marcacion.Tipo.SALIDA, salida)):
+                        marcacion = Marcacion.objects.create(
+                            usuario=usuario, sucursal=usuario.sucursal, tipo=tipo, latitud=usuario.sucursal.latitud,
+                            longitud=usuario.sucursal.longitud, distancia_metros=0)
+                        Marcacion.objects.filter(pk=marcacion.pk).update(fecha_hora=timezone.make_aware(momento))

@@ -51,7 +51,7 @@ class ResetearClaveForm(BootstrapMixin, SetPasswordForm):
 class UsuarioForm(BootstrapMixin, forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = ['first_name', 'last_name', 'ci', 'email', 'telefono', 'username', 'rol', 'sucursal']
+        fields = ['first_name', 'last_name', 'ci', 'email', 'telefono', 'username', 'cargo', 'rol', 'sucursal']
         labels = {'first_name': 'Nombres', 'last_name': 'Apellidos', 'username': 'Nombre de usuario'}
 
     def __init__(self, *args, **kwargs):
@@ -136,7 +136,13 @@ class SucursalForm(BootstrapMixin, forms.ModelForm):
         }
 
 
-class ConfiguracionForm(BootstrapMixin, forms.ModelForm):
+class ConfiguracionVentasForm(BootstrapMixin, forms.ModelForm):
     class Meta:
         model = Configuracion
         fields = ['anticipo_minimo_porcentaje']
+
+
+class ConfiguracionAsistenciaForm(BootstrapMixin, forms.ModelForm):
+    class Meta:
+        model = Configuracion
+        fields = ['tolerancia_minutos']

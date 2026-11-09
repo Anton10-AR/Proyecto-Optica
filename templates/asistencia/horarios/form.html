@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}{% if horario %}Editar horario{% else %}Nuevo horario{% endif %} · Ópticas Casimiro{% endblock %}
+{% block content %}
+<nav aria-label="Ruta" class="mb-2"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'personal_lista' %}">Personal y horarios</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'horario_lista' %}">Horarios</a></li>
+  <li class="breadcrumb-item active">{% if horario %}{{ horario }}{% else %}Nuevo{% endif %}</li>
+</ol></nav>
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-calendar-week"></i>{% if horario %}Editar horario{% else %}Nuevo horario{% endif %}</h1>
+    <p>Indique la entrada y la salida de cada tramo. Deje vacíos los días de descanso.</p>
+  </div>
+</div>
+{% if asignados %}
+<div class="alert alert-warning d-flex gap-2"><i class="bi bi-exclamation-triangle-fill mt-1"></i>
+  <div>Este horario está asignado a {{ asignados }} empleado{{ asignados|pluralize }}. Cambiar sus tramos también cambia el cálculo de los días pasados. Para un cambio que rija desde una fecha, cree un horario nuevo y asígnelo desde esa fecha.</div></div>
+{% endif %}
+<form method="post" novalidate class="card card-body p-4" id="form-horario">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger d-flex gap-2"><i class="bi bi-exclamation-octagon-fill mt-1"></i><div>{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div></div>
+  {% endif %}
+  <div class="row g-3 mb-3">
+    <div class="col-md-5">{% with campo=form.nombre %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-5">{% with campo=form.descripcion %}{% include '_campo.html' %}{% endwith %}</div>
+    <div class="col-md-2 pt-md-4">{% with campo=form.activo %}{% include '_campo.html' %}{% endwith %}</div>
+  </div>
+  <div class="d-flex justify-content-between align-items-baseline">
+    <h2 class="h6 text-muted text-uppercase mb-2">Tramos de la semana</h2>
+    <button type="button" class="btn btn-sm btn-link" id="copiar-lunes"><i class="bi bi-copy me-1"></i>Copiar el lunes de martes a viernes</button>
+  </div>
+  <div class="table-responsive">
+  <table class="table table-sm align-top mb-2">
+    <thead><tr><th>Día</th><th>Entrada 1</th><th>Salida 1</th><th class="border-start">Entrada 2</th><th>Salida 2</th></tr></thead>
+    <tbody>
+    {% for dia, tramos in form.filas %}
+      <tr data-dia="{{ forloop.counter0 }}">
+        <th class="fw-medium pt-2">{{ dia }}</th>
+        {% for entrada, salida in tramos %}
+        <td class="{% if forloop.counter > 1 %}border-start{% endif %}" style="min-width:7.5rem">{{ entrada }}{% for e in entrada.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}</td>
+        <td style="min-width:7.5rem">{{ salida }}{% for e in salida.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="small text-muted"><i class="bi bi-info-circle me-1"></i>Por ejemplo, un horario partido: entrada 1 a las 08:30, salida 1 a las 12:30, entrada 2 a las 14:30 y salida 2 a las 19:30. El atraso se calcula en la entrada de cada tramo.</p>
+  <div class="d-flex gap-2 border-top pt-3">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Guardar horario</button>
+    <a class="btn btn-outline-secondary" href="{% url 'horario_lista' %}">Cancelar</a>
+  </div>
+</form>
+<script>
+document.getElementById('copiar-lunes').addEventListener('click', () => {
+  const lunes = [...document.querySelectorAll('tr[data-dia="0"] input')].map(i => i.value);
+  for (let dia = 1; dia <= 4; dia++) {
+    document.querySelectorAll(`tr[data-dia="${dia}"] input`).forEach((input, i) => { input.value = lunes[i]; });
+  }
+});
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 Ópticas Casimiro · SIS301 Análisis y Diseño de Sistemas
 
-Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración. Los módulos desarrollados después se documentan aparte: el inventario en [`inventario.md`](inventario.md) y los clientes, recetas y órdenes de trabajo en [`recetas_ordenes.md`](recetas_ordenes.md).
+Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración. Los módulos desarrollados después se documentan aparte: el inventario en [`inventario.md`](inventario.md) los clientes, recetas y órdenes de trabajo en [`recetas_ordenes.md`](recetas_ordenes.md), y la asistencia en [`asistencia.md`](asistencia.md).
 
 ## 1. Cómo ejecutar la demostración
 
@@ -24,7 +24,7 @@ Abra http://127.0.0.1:8000/ e inicie sesión con cualquiera de estos usuarios. T
 | `gerente` | Gerente | Centro | Ve ventas, cajas y asistencia de todos y anula ventas; no puede crear ni editar usuarios |
 | `cajero1` | Cajero/Vendedor | Centro | Abre caja, registra ventas y pagos, cierra con arqueo. Tiene una caja cerrada de ejemplo |
 | `cajero2` | Cajero/Vendedor | Norte | No ve las ventas ni las cajas de `cajero1` |
-| `rrhh` | Recursos Humanos | Centro | Ve la asistencia de todo el personal |
+| `rrhh` | Recursos Humanos | Centro | Horarios, permisos, feriados, tolerancia y reportes de asistencia (ver [`asistencia.md`](asistencia.md)) |
 | `empleado1` | Empleado | Centro | Solo marca su asistencia y ve su historial. Tiene marcaciones de ayer |
 | `almacen` | Encargado de almacén | Centro | Catálogo, ingresos, bajas, traspasos y kardex (ver [`inventario.md`](inventario.md)) |
 | `optico` | Óptico/Técnico de taller | Centro | Registra recetas de examen y avanza las órdenes de trabajo (ver [`recetas_ordenes.md`](recetas_ordenes.md)) |
@@ -208,7 +208,8 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Sucursales | Ver sucursales | `core.view_sucursal` | ✔ | ✔ |  | ✔ |  |  |  |
 | Sucursales | Crear sucursales | `core.add_sucursal` | ✔ |  |  |  |  |  |  |
 | Sucursales | Editar sucursales | `core.change_sucursal` | ✔ |  |  |  |  |  |  |
-| Parámetros | Definir los parámetros del negocio (anticipo mínimo) | `core.change_configuracion` | ✔ | ✔ |  |  |  |  |  |
+| Parámetros | Definir el anticipo mínimo para lentes graduados | `core.change_configuracion` | ✔ | ✔ |  |  |  |  |  |
+| Parámetros | Definir la tolerancia de atraso | `core.configurar_asistencia` | ✔ | ✔ |  | ✔ |  |  |  |
 | Inventario | Consultar artículos, precios y stock por sucursal | `inventario.ver_articulos` | ✔ | ✔ | ✔ |  | ✔ | ✔ |  |
 | Inventario | Crear y editar artículos y categorías | `inventario.gestionar_catalogo` | ✔ |  |  |  | ✔ |  |  |
 | Inventario | Ver, crear y editar proveedores | `inventario.gestionar_proveedores` | ✔ |  |  |  | ✔ |  |  |
@@ -230,7 +231,10 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Órdenes de trabajo | Entregar los trabajos al cliente | `ventas.entregar_ordenes` | ✔ |  | ✔ |  |  | ✔ |  |
 | Órdenes de trabajo | Autorizar la entrega de un trabajo con saldo pendiente | `ventas.autorizar_entrega_con_saldo` | ✔ | ✔ |  |  |  |  |  |
 | Asistencia | Marcar su entrada/salida y ver su historial | `asistencia.marcar_asistencia` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Asistencia | Ver la asistencia de todo el personal | `asistencia.ver_todas_marcaciones` | ✔ | ✔ |  | ✔ |  |  |  |
+| Asistencia | Ver la asistencia y los reportes de todo el personal | `asistencia.ver_todas_marcaciones` | ✔ | ✔ |  | ✔ |  |  |  |
+| Asistencia | Gestionar horarios, asignarlos y editar el cargo del personal | `asistencia.gestionar_horarios` | ✔ |  |  | ✔ |  |  |  |
+| Asistencia | Registrar permisos y vacaciones del personal | `asistencia.gestionar_ausencias` | ✔ |  |  | ✔ |  |  |  |
+| Asistencia | Gestionar el calendario de feriados | `asistencia.gestionar_feriados` | ✔ |  |  | ✔ |  |  |  |
 
 - Los tres roles mínimos del enunciado son **Administrador**, **Cajero/Vendedor** y **Empleado**. Los otros cuatro provienen del documento de visión y reciben permisos propios a medida que se implementan sus módulos: el Encargado de almacén tiene los de inventario y el Óptico/Técnico de taller los de recetas y órdenes de trabajo.
 - El Cajero/Vendedor también marca su propia asistencia, porque es parte del personal. Además de Ventas y Caja, consulta el catálogo (precios y stock) y confirma la recepción de los traspasos que llegan a su sucursal, pero no ve costos.

@@ -30,7 +30,8 @@ PERMISOS = {
         'core.change_sucursal': 'Editar sucursales',
     },
     'Parámetros': {
-        'core.change_configuracion': 'Definir los parámetros del negocio (anticipo mínimo)',
+        'core.change_configuracion': 'Definir el anticipo mínimo para lentes graduados',
+        'core.configurar_asistencia': 'Definir la tolerancia de atraso',
     },
     'Inventario': {
         'inventario.ver_articulos': 'Consultar artículos, precios y stock por sucursal',
@@ -64,7 +65,10 @@ PERMISOS = {
     },
     'Asistencia': {
         'asistencia.marcar_asistencia': 'Marcar su entrada/salida y ver su historial',
-        'asistencia.ver_todas_marcaciones': 'Ver la asistencia de todo el personal',
+        'asistencia.ver_todas_marcaciones': 'Ver la asistencia y los reportes de todo el personal',
+        'asistencia.gestionar_horarios': 'Gestionar horarios, asignarlos y editar el cargo del personal',
+        'asistencia.gestionar_ausencias': 'Registrar permisos y vacaciones del personal',
+        'asistencia.gestionar_feriados': 'Gestionar el calendario de feriados',
     },
 }
 TODOS = [p for grupo in PERMISOS.values() for p in grupo]
@@ -84,6 +88,7 @@ ROLES = {
         'ventas.ver_ordenes',
         'ventas.autorizar_entrega_con_saldo',
         'core.change_configuracion',
+        'core.configurar_asistencia',
         'asistencia.marcar_asistencia',
         'asistencia.ver_todas_marcaciones',
     ],
@@ -101,8 +106,12 @@ ROLES = {
     RRHH: [
         'core.view_usuario',
         'core.view_sucursal',
+        'core.configurar_asistencia',
         'asistencia.marcar_asistencia',
         'asistencia.ver_todas_marcaciones',
+        'asistencia.gestionar_horarios',
+        'asistencia.gestionar_ausencias',
+        'asistencia.gestionar_feriados',
     ],
     ALMACEN: [
         'inventario.ver_articulos',

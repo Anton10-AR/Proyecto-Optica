@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Permisos y vacaciones · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-calendar-x"></i>Permisos y vacaciones</h1>
+    <p>Días completos que no se cuentan como falta ni atraso.</p>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-4">
+    <form method="post" novalidate class="card card-body">
+      {% csrf_token %}
+      <h2 class="h6 text-muted text-uppercase mb-2">Registrar</h2>
+      {% include '_campos.html' %}
+      <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Registrar</button>
+    </form>
+  </div>
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Empleado</th><th>Tipo</th><th>Fechas</th><th class="text-end">Días</th><th></th></tr></thead>
+        <tbody>
+        {% for a in pagina %}
+          <tr>
+            <td>{{ a.usuario }}{% if a.motivo %}<div class="small text-muted">{{ a.motivo }}</div>{% endif %}</td>
+            <td><span class="oc-estado oc-estado-info">{{ a.get_tipo_display }}</span></td>
+            <td class="text-nowrap">{{ a.desde|date:"d/m/Y" }}{% if a.hasta != a.desde %} – {{ a.hasta|date:"d/m/Y" }}{% endif %}
+              {% if a.desde <= hoy and hoy <= a.hasta %}<span class="oc-estado oc-estado-ok ms-1">En curso</span>{% endif %}</td>
+            <td class="text-end">{{ a.dias }}</td>
+            <td class="text-end">
+              <form method="post" action="{% url 'ausencia_eliminar' a.pk %}" onsubmit="return confirm('¿Eliminar este registro? Esos días volverán a calcularse como laborables.')">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i><span class="visually-hidden">Eliminar</span></button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-5">No hay permisos ni vacaciones registrados.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    {% include 'inventario/_paginacion.html' with singular='registro' plural='registros' %}
+  </div>
+</div>
+{% endblock %}

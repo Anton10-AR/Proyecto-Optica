@@ -7,7 +7,12 @@
       <div class="card-body p-4 text-center">
         <div class="small text-muted mb-1">{% now "l j \d\e F" %}</div>
         <div class="oc-reloj" id="reloj">{% now "H:i:s" %}</div>
-        <div class="text-muted mb-4"><i class="bi bi-geo-alt me-1"></i>{{ user.sucursal|default:"Sin sucursal asignada" }}</div>
+        <div class="text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>{{ user.sucursal|default:"Sin sucursal asignada" }}</div>
+        <div class="small text-muted mb-4"><i class="bi bi-calendar-week me-1"></i>
+          {% if feriado_hoy %}Hoy es feriado: {{ feriado_hoy.nombre }}
+          {% elif not horario %}Sin horario asignado
+          {% elif tramos_hoy %}Su horario de hoy: {% for t in tramos_hoy %}{{ t.hora_entrada|time:"H:i" }}–{{ t.hora_salida|time:"H:i" }}{% if not forloop.last %} · {% endif %}{% endfor %}
+          {% else %}Hoy no tiene tramos en su horario{% endif %}</div>
         {% if not user.sucursal %}
         <div class="alert alert-warning text-start d-flex gap-2"><i class="bi bi-exclamation-triangle-fill mt-1"></i><div>No tiene una sucursal asignada. Pida al administrador que se la asigne.</div></div>
         {% else %}
@@ -26,7 +31,7 @@
       <div class="card-footer bg-white">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="fw-semibold small text-uppercase text-muted">Hoy</span>
-          <a class="small" href="{% url 'asistencia_mi_historial' %}">Ver mi historial</a>
+          <span class="small"><a href="{% url 'asistencia_mia' %}">Mi asistencia</a> · <a href="{% url 'asistencia_mi_historial' %}">Mis marcaciones</a></span>
         </div>
         <ul class="list-group list-group-flush">
           {% for m in hoy %}

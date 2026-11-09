@@ -1,0 +1,7 @@
+{% comment %}Etiqueta del estado de `dia` (asistencia.calculo.Dia).{% endcomment %}
+{% if dia.estado == 'ASISTIO' %}<span class="oc-estado {% if dia.atraso or dia.tramos_sin_marcar %}oc-estado-aviso{% else %}oc-estado-ok{% endif %}">Asistió</span>
+{% elif dia.estado == 'FALTA' %}<span class="oc-estado oc-estado-peligro">Falta</span>
+{% elif dia.estado == 'EN_CURSO' %}<span class="oc-estado oc-estado-info">En curso</span>
+{% elif dia.estado == 'FERIADO' %}<span class="oc-estado oc-estado-info">{{ dia.detalle }}</span>
+{% elif dia.estado == 'AUSENCIA' %}<span class="oc-estado oc-estado-info">{{ dia.detalle }}</span>
+{% else %}<span class="oc-estado oc-estado-inactivo">Descanso</span>{% endif %}

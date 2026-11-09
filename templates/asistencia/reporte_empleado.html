@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load asistencia %}
+{% block title %}Asistencia de {{ empleado }} · Ópticas Casimiro{% endblock %}
+{% block content %}
+{% if not propio %}
+<nav aria-label="Ruta" class="mb-2 d-print-none"><ol class="breadcrumb small mb-0">
+  <li class="breadcrumb-item"><a href="{% url 'asistencia_reporte' %}?{{ filtros }}">Reporte de asistencia</a></li>
+  <li class="breadcrumb-item active">{{ empleado }}</li>
+</ol></nav>
+{% endif %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-person-check"></i>{% if propio %}Mi asistencia{% else %}{{ empleado }}{% endif %}</h1>
+    <p>Del {{ desde|date:"d/m/Y" }} al {{ hasta|date:"d/m/Y" }}{% if empleado.sucursal %} · {{ empleado.sucursal }}{% endif %} · horario actual: {% if horario %}{{ horario }}{% else %}<span class="text-warning-emphasis">sin horario asignado</span>{% endif %}</p>
+  </div>
+  <div class="d-flex gap-2 d-print-none">
+    <a class="btn btn-outline-primary" href="?{{ filtros }}&formato=csv"><i class="bi bi-filetype-csv me-1"></i>Exportar CSV</a>
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir</button>
+  </div>
+</div>
+{% include 'asistencia/_filtro_periodo.html' %}
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg"><div class="card card-body h-100"><div class="small text-muted">Asistidos</div><div class="fs-4 fw-semibold">{{ resumen.asistidos }} / {{ resumen.laborables }}</div><div class="small text-muted">días laborables</div></div></div>
+  <div class="col-6 col-lg"><div class="card card-body h-100"><div class="small text-muted">Faltas</div><div class="fs-4 fw-semibold {% if resumen.faltas %}text-danger{% endif %}">{{ resumen.faltas }}</div></div></div>
+  <div class="col-6 col-lg"><div class="card card-body h-100"><div class="small text-muted">Atrasos</div><div class="fs-4 fw-semibold {% if resumen.atrasos %}text-warning-emphasis{% endif %}">{{ resumen.atrasos }}</div><div class="small text-muted">{{ resumen.minutos_atraso|minutos }}</div></div></div>
+  <div class="col-6 col-lg"><div class="card card-body h-100"><div class="small text-muted">Tramos sin marcar</div><div class="fs-4 fw-semibold">{{ resumen.tramos_sin_marcar }}</div></div></div>
+  <div class="col-6 col-lg"><div class="card card-body h-100"><div class="small text-muted">Horas trabajadas</div><div class="fs-4 fw-semibold text-primary">{{ resumen.horas|duracion }}</div></div></div>
+</div>
+<div class="card">
+<div class="table-responsive">
+<table class="table table-sm align-middle mb-0">
+  <thead><tr><th>Fecha</th><th>Estado</th><th>Horario</th><th>Marcaciones</th><th class="text-end">Atraso</th><th class="text-end">Horas</th></tr></thead>
+  <tbody>
+  {% for d in dias %}
+    <tr class="{% if d.estado == 'DESCANSO' and not d.marcaciones %}text-muted{% endif %}">
+      <td class="text-nowrap">{{ d.fecha|date:"D d/m" }}</td>
+      <td>{% include 'asistencia/_estado_dia.html' with dia=d %}</td>
+      <td class="small">{% for t in d.tramos %}<span class="text-nowrap {% if t.estado == 'SIN_MARCAR' %}text-danger{% elif t.estado == 'ATRASO' %}text-warning-emphasis{% endif %}" title="{% if t.estado == 'SIN_MARCAR' %}Tramo sin marcar{% elif t.estado == 'ATRASO' %}Atraso de {{ t.atraso }} min{% endif %}">{{ t.inicio|time:"H:i" }}–{{ t.fin|time:"H:i" }}{% if t.estado == 'SIN_MARCAR' %} (sin marcar){% endif %}</span>{% if not forloop.last %} · {% endif %}{% empty %}—{% endfor %}</td>
+      <td class="small">{% for m in d.marcaciones %}<span class="text-nowrap">{{ m.fecha_hora|time:"H:i" }} <span class="text-muted">{% if m.tipo == 'ENTRADA' %}entrada{% else %}salida{% endif %}</span></span>{% if not forloop.last %} · {% endif %}{% empty %}—{% endfor %}
+        {% if d.salida_sin_marcar %}<span class="oc-estado oc-estado-aviso ms-1">Salida sin marcar</span>{% endif %}</td>
+      <td class="text-end">{% if d.atraso %}<span class="text-warning-emphasis fw-medium">{{ d.atraso|minutos }}</span>{% else %}—{% endif %}</td>
+      <td class="text-end">{% if d.horas %}{{ d.horas|duracion }}{% else %}—{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+<p class="small text-muted mt-2 mb-0">Los días más recientes aparecen primero. Las horas suman cada entrada con su salida.</p>
+{% endblock %}

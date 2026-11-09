@@ -17,7 +17,8 @@ from django.views.generic import CreateView, ListView, UpdateView
 
 from .auditoria import Accion, registrar
 from .forms import (
-    CambiarClaveForm, ConfiguracionForm, LoginForm, ResetearClaveForm, SucursalForm, UsuarioCrearForm, UsuarioForm,
+    CambiarClaveForm, ConfiguracionAsistenciaForm, ConfiguracionVentasForm, LoginForm, ResetearClaveForm, SucursalForm,
+    UsuarioCrearForm, UsuarioForm,
 )
 from .models import Configuracion, RegistroActividad, Sucursal, Usuario
 
@@ -216,13 +217,30 @@ class SucursalEditarView(PermisoMixin, UpdateView):
 
 # ---------- Parámetros ----------
 
-@login_required
-@permission_required('core.change_configuracion', raise_exception=True)
+# Cada sección de parámetros tiene su permiso: el gerente define el anticipo (RF32) y la tolerancia;
+# RR.HH. solo la tolerancia (RF18).
+SECCIONES_PARAMETROS = [
+    ('ventas', 'Ventas', 'core.change_configuracion', ConfiguracionVentasForm),
+    ('asistencia', 'Asistencia', 'core.configurar_asistencia', ConfiguracionAsistenciaForm),
+]
+
+
+@requiere_alguno(*(permiso for _, _, permiso, _ in SECCIONES_PARAMETROS))
 def parametros(request):
-    """Parámetros del negocio que define el gerente, como el anticipo mínimo para lentes graduados (RF32)."""
-    form = ConfiguracionForm(request.POST or None, instance=Configuracion.actual())
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Se guardaron los parámetros del sistema.')
-        return redirect('parametros')
-    return render(request, 'core/parametros.html', {'form': form})
+    """Parámetros del negocio: anticipo mínimo para lentes graduados y tolerancia de atraso."""
+    configuracion = Configuracion.actual()
+    secciones = []
+    for clave, titulo, permiso, clase in SECCIONES_PARAMETROS:
+        if request.user.has_perm(permiso):
+            enviada = request.method == 'POST' and request.POST.get('seccion') == clave
+            secciones.append((clave, titulo, clase(request.POST if enviada else None, instance=configuracion,
+                                                  prefix=clave)))
+    if request.method == 'POST':
+        elegida = next((s for s in secciones if s[0] == request.POST.get('seccion')), None)
+        if elegida is None:
+            raise PermissionDenied
+        if elegida[2].is_valid():
+            elegida[2].save()
+            messages.success(request, f'Se guardaron los parámetros de {elegida[1].lower()}.')
+            return redirect('parametros')
+    return render(request, 'core/parametros.html', {'secciones': secciones})
