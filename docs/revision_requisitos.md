@@ -110,20 +110,12 @@ Los 36 requisitos funcionales están implementados. Lo pendiente es de despliegu
 
 ## 4. Acciones antes de la entrega
 
-1. **Documento de visión:** incorporar las decisiones tomadas al desarrollar, que hoy solo están en `CLAUDE.md` y en los documentos de cada módulo:
-   - el cliente ocasional;
-   - las recetas que no se editan;
-   - los lentes graduados marcados en el catálogo;
-   - la anulación con devolución en caja;
-   - la tolerancia contada desde la hora del horario;
-   - el tramo sin marcar;
-   - los permisos por días completos;
-   - el estado *anulada* de la orden;
-   - quién edita qué datos del empleado (RF26).
-2. **Decidir sobre las observaciones:**
-   - las 5 líneas por venta (RF01);
-   - los dos tramos por día (RF17);
-   - el texto "otros parámetros" (RF18).
-3. **Pruebas en campo:** cronometrar una venta (RNF01) y probar el sistema en Firefox y en un iPhone (RNF07).
-4. **Despliegue:** si se va a publicar, preparar la configuración de producción con HTTPS (RNF04 y RNF08). Para la defensa en clase basta `localhost`, donde funcionan todos los módulos, incluida la geolocalización.
-5. **README:** su tabla de estado todavía dice que inventario, ventas completas y asistencia están pendientes.
+| Acción | Estado |
+|---|---|
+| **Documento de visión:** incorporar las decisiones tomadas al desarrollar | **Hecho.** Nueva sección 4.7 *Reglas de negocio*: cliente ocasional, recetas que no se editan, lentes graduados, anulación con devolución, tolerancia, tramo sin marcar, permisos por días, orden anulada y quién edita los datos del empleado |
+| **Observaciones RF01, RF17 y RF18** | **Hecho.** Las 5 líneas por venta y los 2 tramos por día se declararon como límites de la versión 1 (sección 4.6). El RF18 dice ahora «los parámetros… como la tolerancia de atraso». El RF24 y el RF26 se precisaron |
+| **Guía de demostración** única y `preparar_demo` probado en una base nueva | **Hecho.** [`guia_demostracion.md`](guia_demostracion.md) |
+| **README** con el estado actual | **Hecho** |
+| **Pruebas en campo:** cronometrar una venta (RNF01) y probar en Firefox y en un iPhone (RNF07) | Pendiente, a cargo del equipo |
+| **Despliegue con HTTPS** (RNF04 y RNF08) | Pendiente, solo si se publica el sistema. Para la defensa en clase basta `localhost`, donde funcionan todos los módulos, incluida la geolocalización |
+| **Capturas** de `docs/capturas/` con los módulos nuevos | Pendiente |

@@ -12,7 +12,7 @@ Equipo: Aguilar Rosales Carla Fátima · Avendaño Retamozo Juan Antonio · Cuet
 |---|---|---|
 | 1 | Documento de visión (actualizado a la v2) | Listo |
 | 2 | Gestión de usuarios: autenticación, roles (RBAC), CRUD de usuarios, auditoría e integración con caja, ventas y asistencia | Terminada |
-| Próximas | Inventario, ventas completas (clientes, recetas, órdenes de trabajo), asistencia completa (horarios, permisos, feriados) | Pendientes |
+| Sistema completo | Inventario, ventas completas (clientes, recetas, órdenes de trabajo, reportes) y asistencia completa (horarios, permisos, feriados, reportes). Los 36 requisitos funcionales están implementados (ver la [revisión de requisitos](docs/revision_requisitos.md)) | Terminado |
 
 ## Tecnologías
 
@@ -93,7 +93,7 @@ Todos tienen la contraseña **`Casimiro2026!`**. También se puede ingresar con 
 | `empleado1`, `empleado2` | Empleado |
 | `exempleado` | Empleado, con la cuenta desactivada |
 
-`preparar_demo` devuelve la base a este estado inicial: borra las ventas, cajas, marcaciones, la auditoría y los usuarios creados en los ensayos. Úselo antes de cada demostración.
+`preparar_demo` devuelve la base a este estado inicial: borra las operaciones de los ensayos (ventas, cajas, marcaciones, movimientos de inventario, clientes, permisos), la auditoría y los usuarios de ensayo, y recarga los datos de prueba. Úselo el mismo día de cada demostración, porque los datos se arman alrededor de la fecha en que se cargan. El recorrido completo está en la [guía de demostración](docs/guia_demostracion.md).
 
 ## Comandos útiles
 
@@ -112,17 +112,20 @@ Las pruebas crean una base de datos temporal, así que el usuario de PostgreSQL 
 | Carpeta | Contenido |
 |---|---|
 | `config/` | Configuración de Django, URLs y página de inicio |
-| `core/` | Usuarios, roles y permisos, sucursales y auditoría |
+| `core/` | Usuarios, roles y permisos, sucursales, auditoría y parámetros del negocio |
 | `caja/` | Apertura, movimientos y arqueo de caja |
-| `ventas/` | Ventas, pagos y nota de venta |
-| `asistencia/` | Marcación de entrada y salida con geolocalización |
-| `inventario/` | Módulo de inventario (próxima entrega) |
+| `ventas/` | Ventas, pagos, nota de venta, clientes, recetas, órdenes de trabajo y reportes de ventas |
+| `inventario/` | Catálogo, existencias por sucursal, compras, bajas y ajustes, traspasos, kardex, alertas y reportes |
+| `asistencia/` | Marcación con geolocalización, horarios, permisos, feriados y reportes de asistencia |
 | `templates/`, `static/` | Pantallas, estilos, logo y librerías |
 | `docs/` | Documentación de las entregas |
 
 ## Documentación
 
-- [`docs/gestion_usuarios.md`](docs/gestion_usuarios.md): segunda entrega. Incluye la guía de demostración, el diagrama entidad-relación, la matriz de permisos y el cumplimiento del enunciado.
+- [`docs/guia_demostracion.md`](docs/guia_demostracion.md): guía única para presentar todo el sistema, con los usuarios, los datos de prueba y qué hacer si algo falla.
+- [`docs/revision_requisitos.md`](docs/revision_requisitos.md): estado de cada requisito del documento de visión (RF01–RF36 y RNF01–RNF08).
+- [`docs/gestion_usuarios.md`](docs/gestion_usuarios.md): segunda entrega. Incluye el diagrama entidad-relación, la matriz de permisos completa y el cumplimiento del enunciado.
+- [`docs/inventario.md`](docs/inventario.md), [`docs/recetas_ordenes.md`](docs/recetas_ordenes.md), [`docs/asistencia.md`](docs/asistencia.md) y [`docs/reportes_ventas.md`](docs/reportes_ventas.md): diagrama, permisos, reglas de negocio y pruebas de cada módulo.
 - [`docs/capturas/`](docs/capturas/): capturas de las pantallas principales, con lo que muestra cada una.
 - [`docs/identidad_visual.md`](docs/identidad_visual.md): paleta de colores, tipografía y componentes de la interfaz.
 - [`docs/sql/`](docs/sql/): scripts SQL del esquema y de los datos de prueba.
