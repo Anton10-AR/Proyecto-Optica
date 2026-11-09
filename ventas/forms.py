@@ -4,10 +4,12 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.db.models import Q, Sum
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.utils.formats import number_format
 
 from caja.models import FormaPago
 from core.forms import BootstrapMixin
+from core.models import Sucursal
 from inventario.forms import ArticuloChoiceField, LineasFormSet
 from inventario.models import Articulo
 
@@ -189,3 +191,40 @@ class AnularForm(MotivoForm):
 class AutorizarEntregaForm(MotivoForm):
     motivo = forms.CharField(label='Motivo de la autorización', max_length=255,
                              help_text='Por ejemplo: "Cliente frecuente; paga el saldo el viernes".')
+
+
+# ---------- Reportes (RF07) ----------
+
+class VendedorChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, usuario):
+        return usuario.get_full_name() or usuario.username
+
+
+class ReporteVentasForm(BootstrapMixin, forms.Form):
+    desde = forms.DateField(widget=FECHA)
+    hasta = forms.DateField(widget=FECHA)
+    sucursal = forms.ModelChoiceField(queryset=None, required=False, empty_label='Todas las sucursales')
+    vendedor = VendedorChoiceField(queryset=None, required=False, empty_label='Todos los vendedores')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        hoy = timezone.localdate()
+        self.fields['desde'].initial = hoy.replace(day=1)
+        self.fields['hasta'].initial = hoy
+        self.fields['sucursal'].queryset = Sucursal.objects.filter(activa=True)
+        self.fields['vendedor'].queryset = get_user_model().objects.filter(
+            ventas__isnull=False).distinct().order_by('first_name', 'last_name')
+
+    def clean(self):
+        datos = super().clean()
+        desde, hasta = datos.get('desde'), datos.get('hasta')
+        if desde and hasta and desde > hasta:
+            self.add_error('hasta', 'Debe ser igual o posterior a «desde».')
+        return datos
+
+    def filtros(self):
+        """(desde, hasta, sucursal, vendedor) validados, o los de por defecto (mes en curso, sin filtros)."""
+        if self.is_bound and self.is_valid():
+            d = self.cleaned_data
+            return d['desde'], d['hasta'], d['sucursal'], d['vendedor']
+        return self.fields['desde'].initial, self.fields['hasta'].initial, None, None

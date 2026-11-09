@@ -2,7 +2,7 @@
 
 Ópticas Casimiro · SIS301 Análisis y Diseño de Sistemas
 
-Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración. Los módulos desarrollados después se documentan aparte: el inventario en [`inventario.md`](inventario.md) los clientes, recetas y órdenes de trabajo en [`recetas_ordenes.md`](recetas_ordenes.md), y la asistencia en [`asistencia.md`](asistencia.md).
+Este documento acompaña al código fuente del módulo. Reúne el diagrama entidad-relación, la matriz de permisos por rol, la correspondencia con los requisitos del enunciado y la guía de demostración. Los módulos desarrollados después se documentan aparte: el inventario en [`inventario.md`](inventario.md) los clientes, recetas y órdenes de trabajo en [`recetas_ordenes.md`](recetas_ordenes.md), la asistencia en [`asistencia.md`](asistencia.md) y los reportes de ventas en [`reportes_ventas.md`](reportes_ventas.md).
 
 ## 1. Cómo ejecutar la demostración
 
@@ -221,7 +221,7 @@ La genera el comando `manage.py matriz_permisos` a partir de `core/roles.py`, qu
 | Caja | Abrir su caja, registrar movimientos y cerrarla con arqueo | `caja.operar_caja` | ✔ | ✔ | ✔ |  |  |  |  |
 | Caja | Ver las cajas de todos los usuarios | `caja.ver_todas_cajas` | ✔ | ✔ |  |  |  |  |  |
 | Ventas | Registrar ventas y cobrar pagos | `ventas.registrar_venta` | ✔ |  | ✔ |  |  |  |  |
-| Ventas | Ver las ventas de todos los vendedores | `ventas.ver_todas_ventas` | ✔ | ✔ |  |  |  |  |  |
+| Ventas | Ver las ventas de todos los vendedores y los reportes de ventas | `ventas.ver_todas_ventas` | ✔ | ✔ |  |  |  |  |  |
 | Ventas | Anular ventas (repone el stock y devuelve lo pagado desde su caja) | `ventas.anular_venta` | ✔ | ✔ |  |  |  |  |  |
 | Clientes y recetas | Registrar y editar clientes | `ventas.gestionar_clientes` | ✔ |  | ✔ |  |  | ✔ |  |
 | Clientes y recetas | Registrar recetas de los clientes | `ventas.registrar_receta` | ✔ |  | ✔ |  |  | ✔ |  |

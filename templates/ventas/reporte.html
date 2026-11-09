@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Reportes de ventas · Ópticas Casimiro{% endblock %}
+{% block content %}
+<div class="oc-encabezado">
+  <div>
+    <h1><i class="bi bi-graph-up-arrow"></i>Reportes de ventas</h1>
+    <p>Del {{ desde|date:"d/m/Y" }} al {{ hasta|date:"d/m/Y" }}{% if sucursal %} · {{ sucursal }}{% else %} · todas las sucursales{% endif %}{% if vendedor %} · {{ vendedor }}{% endif %}.</p>
+  </div>
+  <div class="d-flex gap-2 d-print-none">
+    <a class="btn btn-outline-primary" href="?{{ filtros }}&vista={{ vista }}&formato=csv"><i class="bi bi-filetype-csv me-1"></i>Exportar CSV</a>
+    <button class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir</button>
+  </div>
+</div>
+<form method="get" class="card card-body mb-3 d-print-none">
+  <input type="hidden" name="vista" value="{{ vista }}">
+  <div class="row g-2 align-items-end">
+    <div class="col-6 col-md-2"><label class="form-label small mb-1" for="id_desde">Desde</label>{{ form.desde }}</div>
+    <div class="col-6 col-md-2"><label class="form-label small mb-1" for="id_hasta">Hasta</label>{{ form.hasta }}</div>
+    <div class="col-md-3"><label class="form-label small mb-1" for="id_sucursal">Sucursal</label>{{ form.sucursal }}</div>
+    <div class="col-md-3"><label class="form-label small mb-1" for="id_vendedor">Vendedor</label>{{ form.vendedor }}</div>
+    <div class="col-md-2"><button class="btn btn-outline-primary w-100"><i class="bi bi-funnel me-1"></i>Ver</button></div>
+  </div>
+  {% for campo in form %}{% for e in campo.errors %}<div class="invalid-feedback d-block">{{ campo.label }}: {{ e }}</div>{% endfor %}{% endfor %}
+</form>
+<ul class="nav nav-pills flex-wrap gap-1 mb-3 d-print-none">
+  {% for clave, nombre in vistas %}
+  <li class="nav-item"><a class="nav-link {% if vista == clave %}active{% endif %}" href="?{{ filtros }}&vista={{ clave }}">{{ nombre }}</a></li>
+  {% endfor %}
+</ul>
+
+{% if vista == 'resumen' %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card card-body h-100"><div class="small text-muted">Ventas</div><div class="fs-4 fw-semibold">{{ datos.cantidad }}</div><div class="small text-muted">vigentes</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body h-100"><div class="small text-muted">Total vendido</div><div class="fs-4 fw-semibold text-primary">Bs {{ datos.total|floatformat:"2g" }}</div><div class="small text-muted">con Bs {{ datos.descuentos|floatformat:"2g" }} de descuentos</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body h-100"><div class="small text-muted">Ticket promedio</div><div class="fs-4 fw-semibold">Bs {{ datos.ticket_promedio|floatformat:"2g" }}</div></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body h-100"><div class="small text-muted">Saldo por cobrar</div><div class="fs-4 fw-semibold {% if datos.saldo %}text-warning-emphasis{% endif %}">Bs {{ datos.saldo|floatformat:"2g" }}</div><div class="small text-muted">de estas ventas</div></div></div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-wallet2 me-1 text-info"></i>Cobrado en el período</div>
+      <table class="table table-sm mb-0">
+        <tbody>
+        {% for forma, monto in datos.cobros %}<tr><td>{{ forma }}</td><td class="text-end">Bs {{ monto|floatformat:"2g" }}</td></tr>{% endfor %}
+        </tbody>
+        <tfoot><tr><th>Total cobrado</th><th class="text-end">Bs {{ datos.cobrado|floatformat:"2g" }}</th></tr></tfoot>
+      </table>
+    </div>
+    <div class="card card-body">
+      <div class="small text-muted">Ventas anuladas en el período</div>
+      <div class="fw-semibold">{{ datos.anuladas.cantidad }} venta{{ datos.anuladas.cantidad|pluralize }} · Bs {{ datos.anuladas.total|floatformat:"2g" }}</div>
+      <div class="small text-muted">No se cuentan en los totales; lo pagado se devolvió.</div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-calendar3 me-1 text-info"></i>Ventas por día</div>
+      <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Fecha</th><th class="text-end">Ventas</th><th class="text-end">Total</th><th style="width:40%"></th></tr></thead>
+        <tbody>
+        {% for d in datos.dias %}
+          <tr><td class="text-nowrap">{{ d.dia|date:"D d/m/Y" }}</td><td class="text-end">{{ d.cantidad }}</td>
+            <td class="text-end text-nowrap">Bs {{ d.total|floatformat:"2g" }}</td>
+            <td><div class="progress" style="height:.5rem" role="presentation"><div class="progress-bar" style="width:{{ d.porcentaje }}%; background: var(--oc-turquesa)"></div></div></td></tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-5">No hay ventas en el período.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% elif vista == 'vendedores' %}
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+  <thead><tr><th>Vendedor</th><th>Sucursal</th><th class="text-end">Ventas</th><th class="text-end">Total</th><th class="text-end">Descuentos</th><th class="text-end">Ticket promedio</th><th class="text-end">Saldo pendiente</th></tr></thead>
+  <tbody>
+  {% for f in filas %}
+    <tr><td class="fw-medium">{{ f.vendedor }}</td><td class="small">{{ f.sucursales }}</td><td class="text-end">{{ f.cantidad }}</td>
+      <td class="text-end text-nowrap fw-medium">Bs {{ f.total|floatformat:"2g" }}</td><td class="text-end text-nowrap">Bs {{ f.descuentos|floatformat:"2g" }}</td>
+      <td class="text-end text-nowrap">Bs {{ f.ticket_promedio|floatformat:"2g" }}</td><td class="text-end text-nowrap">Bs {{ f.saldo|floatformat:"2g" }}</td></tr>
+  {% empty %}
+    <tr><td colspan="7" class="text-center text-muted py-5">No hay ventas en el período.</td></tr>
+  {% endfor %}
+  </tbody>
+  {% if filas %}
+  <tfoot><tr><th colspan="2" class="text-end">Total</th><th class="text-end">{{ totales.cantidad }}</th><th class="text-end text-nowrap">Bs {{ totales.total|floatformat:"2g" }}</th>
+    <th class="text-end text-nowrap">Bs {{ totales.descuentos|floatformat:"2g" }}</th><th></th><th class="text-end text-nowrap">Bs {{ totales.saldo|floatformat:"2g" }}</th></tr></tfoot>
+  {% endif %}
+</table>
+</div>
+</div>
+<p class="small text-muted mt-2 mb-0">Ventas vigentes registradas en el período por cada vendedor, de la mayor a la menor. El saldo pendiente es el que todavía tienen esas ventas.</p>
+
+{% else %}
+<div class="card">
+<div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+  <thead><tr><th>Artículo</th><th>Categoría</th><th class="text-end">Unidades</th><th class="text-end">Importe</th>
+    {% if ver_costos %}<th class="text-end">Costo</th><th class="text-end">Margen</th>{% endif %}</tr></thead>
+  <tbody>
+  {% for f in filas %}
+    <tr><td><span class="fw-medium">{{ f.articulo__codigo }}</span> · {{ f.articulo__nombre }}</td><td class="small text-muted">{{ f.articulo__categoria__nombre }}</td>
+      <td class="text-end">{{ f.unidades }}</td><td class="text-end text-nowrap fw-medium">Bs {{ f.importe|floatformat:"2g" }}</td>
+      {% if ver_costos %}<td class="text-end text-nowrap">Bs {{ f.costo|floatformat:"2g" }}</td>
+      <td class="text-end text-nowrap">Bs {{ f.margen|floatformat:"2g" }}{% if f.margen_porcentaje is not None %} <span class="small text-muted">({{ f.margen_porcentaje|floatformat:1 }} %)</span>{% endif %}</td>{% endif %}</tr>
+  {% empty %}
+    <tr><td colspan="6" class="text-center text-muted py-5">No hay artículos vendidos en el período.</td></tr>
+  {% endfor %}
+  </tbody>
+  {% if filas %}
+  <tfoot><tr><th colspan="2" class="text-end">Total</th><th class="text-end">{{ totales.unidades }}</th><th class="text-end text-nowrap">Bs {{ totales.importe|floatformat:"2g" }}</th>
+    {% if ver_costos %}<th class="text-end text-nowrap">Bs {{ totales.costo|floatformat:"2g" }}</th><th class="text-end text-nowrap">Bs {{ totales.margen|floatformat:"2g" }}</th>{% endif %}</tr></tfoot>
+  {% endif %}
+</table>
+</div>
+</div>
+<p class="small text-muted mt-2 mb-0">Importe a precio de lista: el descuento es de la venta completa y no se reparte entre los artículos. {% if ver_costos %}El costo es el costo promedio al momento de vender; los servicios no tienen costo.{% endif %}{% if sin_detalle %} {{ sin_detalle }} venta{{ sin_detalle|pluralize }} del período se registr{{ sin_detalle|pluralize:"ó,aron" }} antes del inventario, sin artículos, y no aparece{{ sin_detalle|pluralize:"n" }} aquí.{% endif %}</p>
+{% endif %}
+{% endblock %}

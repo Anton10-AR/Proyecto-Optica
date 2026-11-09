@@ -49,7 +49,7 @@ PERMISOS = {
     },
     'Ventas': {
         'ventas.registrar_venta': 'Registrar ventas y cobrar pagos',
-        'ventas.ver_todas_ventas': 'Ver las ventas de todos los vendedores',
+        'ventas.ver_todas_ventas': 'Ver las ventas de todos los vendedores y los reportes de ventas',
         'ventas.anular_venta': 'Anular ventas (repone el stock y devuelve lo pagado desde su caja)',
     },
     'Clientes y recetas': {

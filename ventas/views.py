@@ -1,3 +1,4 @@
+import csv
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -5,6 +6,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -12,10 +14,10 @@ from caja.servicios import caja_abierta
 from core.models import Configuracion, Sucursal
 from core.views import requiere_alguno
 
-from . import servicios
+from . import reportes, servicios
 from .forms import (
     AnularForm, AutorizarEntregaForm, ClienteForm, LineasVentaFormSet, PagoForm, RecetaChoiceField, RecetaForm,
-    VentaForm,
+    ReporteVentasForm, VentaForm,
 )
 from .models import Cliente, OrdenTrabajo, Receta, Venta
 
@@ -321,3 +323,71 @@ def orden_autorizar(request, pk):
 def orden_entregar(request, pk):
     return _operar_orden(request, pk, lambda o: servicios.entregar_orden(o, request.user),
                          'La {orden} se entregó al cliente.')
+
+
+# ---------- Reportes de ventas (RF07) ----------
+
+VISTAS_REPORTE = [('resumen', 'Resumen'), ('vendedores', 'Por vendedor'), ('productos', 'Por producto')]
+
+
+def _numero(valor):
+    """Número con coma decimal, como lo espera Excel en español."""
+    return str(valor).replace('.', ',')
+
+
+def _csv(nombre, encabezados, filas):
+    respuesta = HttpResponse(content_type='text/csv; charset=utf-8')
+    respuesta['Content-Disposition'] = f'attachment; filename="{nombre}.csv"'
+    respuesta.write('\ufeff')  # BOM: Excel abre el archivo como UTF-8.
+    escritor = csv.writer(respuesta, delimiter=';')
+    escritor.writerow(encabezados)
+    escritor.writerows(filas)
+    return respuesta
+
+
+@login_required
+@permission_required('ventas.ver_todas_ventas', raise_exception=True)
+def reporte(request):
+    """Ventas por período, vendedor y producto (RF07)."""
+    vista = request.GET.get('vista') if request.GET.get('vista') in dict(VISTAS_REPORTE) else 'resumen'
+    form = ReporteVentasForm(request.GET or None)
+    desde, hasta, sucursal, vendedor = form.filtros()
+    filtros = {'desde': f'{desde:%Y-%m-%d}', 'hasta': f'{hasta:%Y-%m-%d}',
+               'sucursal': sucursal.pk if sucursal else '', 'vendedor': vendedor.pk if vendedor else ''}
+    contexto = {'form': form, 'vista': vista, 'vistas': VISTAS_REPORTE, 'desde': desde, 'hasta': hasta,
+                'sucursal': sucursal, 'vendedor': vendedor, 'filtros': urlencode(filtros),
+                'ver_costos': request.user.has_perm('inventario.ver_kardex')}
+    nombre = f'ventas_{vista}_{desde:%Y-%m-%d}_a_{hasta:%Y-%m-%d}'
+    exportar = request.GET.get('formato') == 'csv'
+
+    if vista == 'vendedores':
+        filas = reportes.por_vendedor(desde, hasta, sucursal, vendedor)
+        if exportar:
+            return _csv(nombre, ['Vendedor', 'Sucursal', 'Ventas', 'Total (Bs)', 'Descuentos (Bs)',
+                                 'Ticket promedio (Bs)', 'Saldo pendiente (Bs)'],
+                        [[f['vendedor'], f['sucursales'], f['cantidad'], _numero(f['total']),
+                          _numero(f['descuentos']), _numero(f['ticket_promedio']), _numero(f['saldo'])]
+                         for f in filas])
+        contexto['filas'] = filas
+        contexto['totales'] = {c: sum(f[c] for f in filas) for c in ('cantidad', 'total', 'descuentos', 'saldo')}
+    elif vista == 'productos':
+        filas, sin_detalle = reportes.por_producto(desde, hasta, sucursal, vendedor)
+        if exportar:
+            encabezados = ['Código', 'Artículo', 'Categoría', 'Unidades', 'Importe (Bs)']
+            if contexto['ver_costos']:
+                encabezados += ['Costo (Bs)', 'Margen (Bs)', 'Margen (%)']
+            return _csv(nombre, encabezados, [
+                [f['articulo__codigo'], f['articulo__nombre'], f['articulo__categoria__nombre'], f['unidades'],
+                 _numero(f['importe'])]
+                + ([_numero(f['costo']), _numero(f['margen']), _numero(f['margen_porcentaje'] or '')]
+                   if contexto['ver_costos'] else [])
+                for f in filas])
+        contexto.update(filas=filas, sin_detalle=sin_detalle,
+                        totales={c: sum(f[c] for f in filas) for c in ('unidades', 'importe', 'costo', 'margen')})
+    else:
+        datos = reportes.resumen(desde, hasta, sucursal, vendedor)
+        if exportar:
+            return _csv(nombre, ['Fecha', 'Ventas', 'Total (Bs)'],
+                        [[f'{d["dia"]:%d/%m/%Y}', d['cantidad'], _numero(d['total'])] for d in datos['dias']])
+        contexto['datos'] = datos
+    return render(request, 'ventas/reporte.html', contexto)

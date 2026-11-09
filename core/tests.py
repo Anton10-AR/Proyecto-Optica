@@ -236,6 +236,8 @@ class PantallasTests(TestCase):
             reverse('mi_caja'), reverse('caja_todas'), reverse('caja_detalle', args=[sesion.pk]),
             reverse('venta_lista'), reverse('venta_detalle', args=[venta.pk]), reverse('venta_nota', args=[venta.pk]),
             reverse('venta_anular', args=[venta.pk]),
+            reverse('venta_reporte'), reverse('venta_reporte') + '?vista=vendedores',
+            reverse('venta_reporte') + '?vista=productos&formato=csv',
             reverse('cliente_lista'), reverse('cliente_crear'), reverse('cliente_detalle', args=[venta.cliente_id]),
             reverse('cliente_editar', args=[venta.cliente_id]), reverse('receta_crear', args=[venta.cliente_id]),
             reverse('receta_detalle', args=[venta.orden.receta_id]), reverse('orden_lista'),

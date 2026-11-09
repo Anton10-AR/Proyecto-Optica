@@ -36,6 +36,7 @@
             {% if perms.ventas.registrar_venta %}<li><a class="dropdown-item" href="{% url 'venta_crear' %}"><i class="bi bi-plus-circle"></i>Nueva venta</a></li>{% endif %}
             {% if perms.ventas.registrar_venta or perms.ventas.ver_todas_ventas %}<li><a class="dropdown-item" href="{% url 'venta_lista' %}"><i class="bi bi-list-ul"></i>{% if perms.ventas.ver_todas_ventas %}Todas las ventas{% else %}Mis ventas{% endif %}</a></li>{% endif %}
             {% if perms.ventas.ver_ordenes %}<li><a class="dropdown-item" href="{% url 'orden_lista' %}"><i class="bi bi-tools"></i>Órdenes de trabajo</a></li>{% endif %}
+            {% if perms.ventas.ver_todas_ventas %}<li><a class="dropdown-item" href="{% url 'venta_reporte' %}"><i class="bi bi-graph-up-arrow"></i>Reportes de ventas</a></li>{% endif %}
             {% if perms.ventas.gestionar_clientes or perms.ventas.registrar_receta or perms.ventas.ver_todas_ventas or perms.ventas.ver_ordenes %}
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{% url 'cliente_lista' %}"><i class="bi bi-person-vcard"></i>Clientes y recetas</a></li>
