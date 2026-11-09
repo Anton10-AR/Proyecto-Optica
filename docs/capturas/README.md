@@ -1,6 +1,9 @@
-# Capturas de pantalla · Gestión de Usuarios
+# Capturas de pantalla
 
-Capturas del sistema con los datos de prueba (`preparar_demo`), tomadas a 1366 × 860 px. Siguen el orden del recorrido de la demostración. Todos los datos son ficticios.
+Capturas del sistema con los datos de prueba (`preparar_demo`), tomadas a 1366 × 860 px. Todos los datos son ficticios.
+
+- **01 a 24:** segunda entrega (Gestión de Usuarios), con las pantallas de ese momento.
+- **25 a 48:** sistema completo: inventario, clientes, recetas y órdenes de trabajo, reportes y asistencia. Siguen el recorrido de la [guía de demostración](../guia_demostracion.md).
 
 Los pies de figura numerados para el informe están en [`subtitulos.md`](subtitulos.md).
 
@@ -52,3 +55,47 @@ Los pies de figura numerados para el informe están en [`subtitulos.md`](subtitu
 | 04 | [04_marcar_asistencia.png](04_marcar_asistencia.png) | `empleado1` | Entrada registrada dentro del radio de la sucursal (9 m); el botón pasa a *Marcar salida* |
 | 06 | [06_mi_historial.png](06_mi_historial.png) | `empleado1` | Historial personal de entradas y salidas |
 | 20 | [20_asistencia_personal.png](20_asistencia_personal.png) | `administrador` | Marcaciones de todo el personal, con filtros por empleado y fecha |
+
+## Inventario
+
+| # | Captura | Usuario | Qué muestra |
+|---|---|---|---|
+| 25 | [25_articulos.png](25_articulos.png) | `almacen` | Catálogo con búsqueda, categoría y stock total |
+| 26 | [26_kardex.png](26_kardex.png) | `almacen` | Kardex valorado: compra, traspaso, baja, venta y reposición por anulación |
+| 27 | [27_ingreso.png](27_ingreso.png) | `almacen` | Ingreso por compra con sus líneas y total |
+| 28 | [28_traspaso_por_recibir.png](28_traspaso_por_recibir.png) | `cajero2` | Traspaso en camino: solo la sucursal de destino puede confirmarlo |
+| 29 | [29_alertas_stock.png](29_alertas_stock.png) | `almacen` | Alertas de stock mínimo con stock disponible en otras sucursales |
+| 30 | [30_inventario_valorado.png](30_inventario_valorado.png) | `gerente` | Inventario valorado consolidado, por categoría |
+
+## Clientes, recetas y órdenes de trabajo
+
+| # | Captura | Usuario | Qué muestra |
+|---|---|---|---|
+| 31 | [31_cliente_ficha.png](31_cliente_ficha.png) | `cajero1` | Ficha del cliente: historial de recetas, compras y órdenes |
+| 32 | [32_receta_nueva.png](32_receta_nueva.png) | `optico` | Registro de una receta de examen (OD/OI, DP y óptico responsable) |
+| 33 | [33_venta_anticipo_insuficiente.png](33_venta_anticipo_insuficiente.png) | `cajero1` | Venta de lentes graduados rechazada por anticipo menor al mínimo |
+| 34 | [34_venta_con_orden.png](34_venta_con_orden.png) | `cajero1` | Venta registrada con su orden de trabajo generada |
+| 35 | [35_ordenes_trabajo.png](35_ordenes_trabajo.png) | `optico` | Órdenes de trabajo filtradas por estado |
+| 36 | [36_orden_entrega_bloqueada.png](36_orden_entrega_bloqueada.png) | `cajero1` | Orden lista con saldo: la entrega queda bloqueada |
+| 37 | [37_orden_autorizar_gerente.png](37_orden_autorizar_gerente.png) | `gerente` | El gerente autoriza la entrega con saldo, con un motivo |
+
+## Gerencia: anulación y reportes de ventas
+
+| # | Captura | Usuario | Qué muestra |
+|---|---|---|---|
+| 38 | [38_venta_anulada.png](38_venta_anulada.png) | `gerente` | Venta anulada: stock repuesto, pago devuelto y orden anulada |
+| 39 | [39_reporte_ventas.png](39_reporte_ventas.png) | `gerente` | Resumen de ventas: totales, cobros por forma de pago, anuladas y ventas por día |
+| 40 | [40_reporte_ventas_producto.png](40_reporte_ventas_producto.png) | `gerente` | Ventas por producto con costo y margen |
+| 48 | [48_inicio_gerente.png](48_inicio_gerente.png) | `gerente` | Inicio del gerente: caja, órdenes, alertas de stock y asistencia |
+
+## Asistencia y parámetros
+
+| # | Captura | Usuario | Qué muestra |
+|---|---|---|---|
+| 41 | [41_marcar_con_horario.png](41_marcar_con_horario.png) | `empleado1` | Marcación con el horario del día |
+| 42 | [42_reporte_asistencia.png](42_reporte_asistencia.png) | `rrhh` | Reporte de asistencia por empleado: faltas, atrasos, permisos y horas |
+| 43 | [43_asistencia_empleado.png](43_asistencia_empleado.png) | `rrhh` | Detalle día por día: atraso, tramo sin marcar, falta y feriado |
+| 44 | [44_horario.png](44_horario.png) | `rrhh` | Horario partido con dos tramos por día |
+| 45 | [45_permisos_vacaciones.png](45_permisos_vacaciones.png) | `rrhh` | Permisos y vacaciones por días completos |
+| 46 | [46_feriados.png](46_feriados.png) | `rrhh` | Calendario de feriados del año |
+| 47 | [47_parametros.png](47_parametros.png) | `gerente` | Parámetros: anticipo mínimo y tolerancia de atraso |

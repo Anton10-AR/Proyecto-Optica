@@ -118,4 +118,4 @@ Los 36 requisitos funcionales están implementados. Lo pendiente es de despliegu
 | **README** con el estado actual | **Hecho** |
 | **Pruebas en campo:** cronometrar una venta (RNF01) y probar en Firefox y en un iPhone (RNF07) | Pendiente, a cargo del equipo |
 | **Despliegue con HTTPS** (RNF04 y RNF08) | Pendiente, solo si se publica el sistema. Para la defensa en clase basta `localhost`, donde funcionan todos los módulos, incluida la geolocalización |
-| **Capturas** de `docs/capturas/` con los módulos nuevos | Pendiente |
+| **Capturas** de `docs/capturas/` con los módulos nuevos | **Hecho.** Capturas 25 a 48, con sus subtítulos para el informe |

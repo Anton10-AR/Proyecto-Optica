@@ -1,6 +1,6 @@
 # Subtítulos de las capturas
 
-Pies de figura para el informe de la segunda entrega, en el orden de los archivos de esta carpeta. Debajo de cada figura se puede agregar *Fuente: elaboración propia.*
+Pies de figura para el informe, en el orden de los archivos de esta carpeta: las figuras 1 a 24 son de la segunda entrega y las 25 a 48, del sistema completo. Debajo de cada figura se puede agregar *Fuente: elaboración propia.*
 
 | Archivo | Subtítulo |
 |---|---|
@@ -28,3 +28,27 @@ Pies de figura para el informe de la segunda entrega, en el orden de los archivo
 | `22_cambio_clave_obligatorio.png` | **Figura 22.** Cambio obligatorio de la contraseña inicial en el primer ingreso de un usuario nuevo. |
 | `23_registro_actividad.png` | **Figura 23.** Registro de actividad (auditoría): inicios de sesión, intentos fallidos y creación y desactivación de cuentas, con fecha, hora, usuario e IP. |
 | `24_ventas_gerente.png` | **Figura 24.** Listado de ventas visto por el Gerente, que consulta las ventas de todos los vendedores. |
+| `25_articulos.png` | **Figura 25.** Catálogo de artículos con su categoría, precio y stock total, con búsqueda por código, código de barras o nombre. |
+| `26_kardex.png` | **Figura 26.** Kardex valorado por costo promedio ponderado: cada entrada y salida muestra el saldo de la sucursal, el costo promedio y el valor. |
+| `27_ingreso.png` | **Figura 27.** Ingreso de mercadería por compra a un proveedor, con la factura, las cantidades y el costo de cada artículo. |
+| `28_traspaso_por_recibir.png` | **Figura 28.** Traspaso entre sucursales en dos pasos: la sucursal de destino confirma la recepción para que la mercadería entre a su stock. |
+| `29_alertas_stock.png` | **Figura 29.** Alertas de stock mínimo por sucursal, con las unidades disponibles en otras sucursales para decidir entre traspasar o comprar. |
+| `30_inventario_valorado.png` | **Figura 30.** Reporte de inventario valorado de toda la empresa, con subtotales por categoría y exportación a CSV. |
+| `31_cliente_ficha.png` | **Figura 31.** Ficha del cliente con el historial de sus recetas, sus compras y el estado de sus órdenes de trabajo. |
+| `32_receta_nueva.png` | **Figura 32.** Registro de la receta oftalmológica: graduación de cada ojo, distancia pupilar y óptico responsable del examen. |
+| `33_venta_anticipo_insuficiente.png` | **Figura 33.** Venta de lentes graduados con cliente y receta: el sistema exige el anticipo mínimo configurado (50 %). |
+| `34_venta_con_orden.png` | **Figura 34.** Venta de lentes graduados registrada: genera la orden de trabajo para el taller con la fecha de entrega prometida. |
+| `35_ordenes_trabajo.png` | **Figura 35.** Órdenes de trabajo del taller, consultadas por estado, con su fecha de entrega prometida y el saldo de la venta. |
+| `36_orden_entrega_bloqueada.png` | **Figura 36.** Orden de trabajo lista con saldo pendiente: la entrega queda bloqueada hasta cobrar el saldo o contar con la autorización del gerente. |
+| `37_orden_autorizar_gerente.png` | **Figura 37.** Autorización del gerente para entregar un trabajo con saldo pendiente; queda registrada con su nombre, la fecha y el motivo. |
+| `38_venta_anulada.png` | **Figura 38.** Venta anulada con motivo: el stock se repone, lo pagado se devuelve desde la caja de quien anula y la orden de trabajo queda anulada. |
+| `39_reporte_ventas.png` | **Figura 39.** Reporte de ventas del período: total vendido, ticket promedio, saldo por cobrar, cobros por forma de pago y ventas por día. |
+| `40_reporte_ventas_producto.png` | **Figura 40.** Reporte de ventas por producto, con las unidades vendidas, el importe, el costo y el margen. |
+| `41_marcar_con_horario.png` | **Figura 41.** Pantalla de marcación de asistencia, que muestra el horario partido del empleado para el día. |
+| `42_reporte_asistencia.png` | **Figura 42.** Reporte de asistencia del período por empleado: días laborables, asistidos, faltas, atrasos, tramos sin marcar, permisos y horas trabajadas. |
+| `43_asistencia_empleado.png` | **Figura 43.** Detalle diario de la asistencia de un empleado: atraso en un tramo, tramo sin marcar, falta, feriado y horas trabajadas. |
+| `44_horario.png` | **Figura 44.** Definición de un horario partido, con dos tramos por día de lunes a viernes y uno el sábado. |
+| `45_permisos_vacaciones.png` | **Figura 45.** Registro de permisos, vacaciones y bajas médicas por días completos, que no se cuentan como faltas. |
+| `46_feriados.png` | **Figura 46.** Calendario de feriados, comunes a todas las sucursales, que no se cuentan como faltas. |
+| `47_parametros.png` | **Figura 47.** Parámetros del negocio: anticipo mínimo para lentes graduados y tolerancia de atraso. |
+| `48_inicio_gerente.png` | **Figura 48.** Panel de inicio del Gerente con indicadores de caja, ventas, órdenes de trabajo, alertas de stock, asistencia y seguridad. |
