@@ -5,7 +5,7 @@ Capturas del sistema con los datos de prueba (`preparar_demo`), tomadas a 1366 �
 - **01 a 24:** recorrido de la segunda entrega (inicio de sesión, usuarios, caja, ventas y asistencia), tomadas de nuevo con el sistema actual.
 - **25 a 48:** sistema completo: inventario, clientes, recetas y órdenes de trabajo, reportes y asistencia. Siguen el recorrido de la [guía de demostración](../guia_demostracion.md).
 
-Los pies de figura numerados para el informe están en [`subtitulos.md`](subtitulos.md).
+Los pies de figura numerados para el informe están en [`subtitulos.md`](subtitulos.md). El documento de la entrega final con todas las figuras es [`SIS301_Entrega_Final.docx`](../SIS301_Entrega_Final.docx).
 
 ## Inicio de sesión y control de acceso
 

@@ -127,6 +127,7 @@ Las pruebas crean una base de datos temporal, así que el usuario de PostgreSQL 
 - [`docs/gestion_usuarios.md`](docs/gestion_usuarios.md): segunda entrega. Incluye el diagrama entidad-relación, la matriz de permisos completa y el cumplimiento del enunciado.
 - [`docs/inventario.md`](docs/inventario.md), [`docs/recetas_ordenes.md`](docs/recetas_ordenes.md), [`docs/asistencia.md`](docs/asistencia.md) y [`docs/reportes_ventas.md`](docs/reportes_ventas.md): diagrama, permisos, reglas de negocio y pruebas de cada módulo.
 - [`docs/capturas/`](docs/capturas/): capturas de las pantallas principales, con lo que muestra cada una.
+- [`docs/SIS301_Entrega_Final.docx`](docs/SIS301_Entrega_Final.docx): documento de la entrega final con las 48 capturas y sus pies de figura.
 - [`docs/identidad_visual.md`](docs/identidad_visual.md): paleta de colores, tipografía y componentes de la interfaz.
 - [`docs/sql/`](docs/sql/): scripts SQL del esquema y de los datos de prueba.
 - [`docs/vision/`](docs/vision/): generador del documento de visión en Word.
