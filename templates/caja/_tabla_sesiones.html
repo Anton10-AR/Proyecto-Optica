@@ -16,7 +16,7 @@
       <td class="text-end">{% if s.monto_contado is not None %}Bs {{ s.monto_contado }}{% else %}—{% endif %}</td>
       <td class="text-end">
         {% with d=s.diferencia %}
-        {% if d is None %}—{% elif d == 0 %}<span class="oc-estado oc-estado-ok">Cuadra</span>{% elif d > 0 %}<span class="oc-estado oc-estado-aviso">Sobra Bs {{ d }}</span>{% else %}<span class="oc-estado oc-estado-peligro">Falta Bs {{ d|stringformat:'s'|cut:'-' }}</span>{% endif %}
+        {% if d is None %}—{% elif d == 0 %}<span class="oc-estado oc-estado-ok">Cuadra</span>{% elif d > 0 %}<span class="oc-estado oc-estado-aviso">Sobra Bs {{ d|floatformat:"2g" }}</span>{% else %}<span class="oc-estado oc-estado-peligro">Falta Bs {{ d|floatformat:"2g"|cut:'-' }}</span>{% endif %}
         {% endwith %}
       </td>
       <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'caja_detalle' s.pk %}"><i class="bi bi-eye"></i><span class="visually-hidden">Ver</span></a></td>

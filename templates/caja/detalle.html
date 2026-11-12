@@ -14,7 +14,7 @@
   <div class="col-6 col-lg-3"><div class="card card-body h-100"><div class="small text-muted">Efectivo esperado</div><div class="fs-5 fw-semibold text-primary">Bs {% if sesion.monto_esperado is not None %}{{ sesion.monto_esperado }}{% else %}{{ sesion.efectivo_esperado }}{% endif %}</div></div></div>
   <div class="col-6 col-lg-3"><div class="card card-body h-100"><div class="small text-muted">Efectivo contado</div><div class="fs-5 fw-semibold text-primary">{% if sesion.monto_contado is not None %}Bs {{ sesion.monto_contado }}{% else %}—{% endif %}</div></div></div>
   <div class="col-6 col-lg-3"><div class="card card-body h-100"><div class="small text-muted">Arqueo</div>
-    <div class="fs-5 fw-semibold">{% with d=sesion.diferencia %}{% if d is None %}—{% elif d == 0 %}<span class="text-success">Cuadra</span>{% elif d > 0 %}<span class="text-warning">Sobra Bs {{ d }}</span>{% else %}<span class="text-danger">Falta Bs {{ d|stringformat:'s'|cut:'-' }}</span>{% endif %}{% endwith %}</div></div></div>
+    <div class="fs-5 fw-semibold">{% with d=sesion.diferencia %}{% if d is None %}—{% elif d == 0 %}<span class="text-success">Cuadra</span>{% elif d > 0 %}<span class="text-warning">Sobra Bs {{ d|floatformat:"2g" }}</span>{% else %}<span class="text-danger">Falta Bs {{ d|floatformat:"2g"|cut:'-' }}</span>{% endif %}{% endwith %}</div></div></div>
 </div>
 {% if sesion.observacion %}<div class="alert alert-info"><strong>Observación:</strong> {{ sesion.observacion }}</div>{% endif %}
 <div class="card">
